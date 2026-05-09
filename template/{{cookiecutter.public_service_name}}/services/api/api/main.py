@@ -18,9 +18,9 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from prometheus_fastapi_instrumentator import Instrumentator
 
-from src.config import get_settings
-from src.middleware.error_tracking import ErrorTrackingMiddleware
-from src.routers.v1_router import v1_router
+from api.config import get_settings
+from api.middleware.error_tracking import ErrorTrackingMiddleware
+from api.routers.v1_router import v1_router
 
 logger = logging.getLogger(__name__)
 

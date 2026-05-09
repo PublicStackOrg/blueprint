@@ -10,7 +10,7 @@ from fastapi import Depends, Header, Request
 from grid_adapters.identity import CurrentUser, IdentityAdapter, NoAuthAdapter
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.config import APISettings, get_settings
+from api.config import APISettings, get_settings
 
 
 async def get_session(request: Request) -> AsyncIterator[AsyncSession]:

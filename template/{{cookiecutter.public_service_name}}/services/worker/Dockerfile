@@ -33,4 +33,4 @@ COPY --from=builder /workspace/services/worker /app
 
 ENV PYTHONPATH=/app:/workspace/libraries/core:/workspace/libraries/grid_adapters
 
-CMD ["python", "-m", "src.main"]
+CMD ["python", "-m", "worker.main"]

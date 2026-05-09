@@ -2,7 +2,7 @@
   "$schema": "../../node_modules/nx/schemas/project-schema.json",
   "name": "worker",
   "projectType": "application",
-  "sourceRoot": "services/worker/src",
+  "sourceRoot": "services/worker/worker",
   "tags": ["service:python", "service:worker"],
   "targets": {
     "install": {
@@ -11,7 +11,7 @@
     },
     "lint": {
       "executor": "nx:run-commands",
-      "options": { "commands": ["poetry run ruff check src/ tests/"], "cwd": "services/worker" }
+      "options": { "commands": ["poetry run ruff check worker/ tests/"], "cwd": "services/worker" }
     },
     "test": {
       "executor": "nx:run-commands",

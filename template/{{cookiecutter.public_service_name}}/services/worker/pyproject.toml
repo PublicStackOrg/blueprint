@@ -5,7 +5,7 @@ description = "{{ cookiecutter.public_service_name }} background task worker (RQ
 authors = ["PublicStack <hello@publicstack.org>"]
 license = "AGPL-3.0-or-later"
 package-mode = true
-packages = [{ include = "src" }]
+packages = [{ include = "worker" }]
 
 [tool.poetry.dependencies]
 python = "^3.13"

@@ -6,4 +6,4 @@ the API (or other services) via the queue Grid adapter. Importing this
 package registers task names so RQ can find them at execution time.
 """
 
-from src.tasks.example_task import echo  # noqa: F401
+from worker.tasks.example_task import echo  # noqa: F401

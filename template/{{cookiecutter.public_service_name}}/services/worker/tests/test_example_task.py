@@ -3,7 +3,7 @@
 
 from __future__ import annotations
 
-from src.tasks.example_task import echo
+from worker.tasks.example_task import echo
 
 
 def test_echo_returns_input():

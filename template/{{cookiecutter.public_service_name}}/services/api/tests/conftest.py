@@ -33,7 +33,7 @@ async def test_engine():
 
 @pytest_asyncio.fixture
 async def async_client(test_engine):
-    from src.main import app
+    from api.main import app
 
     app.state.db_engine = test_engine
     app.state.db_session_maker = async_sessionmaker(test_engine, expire_on_commit=False)

@@ -2,7 +2,7 @@
 # Part of {{ cookiecutter.public_service_name }} (PublicStack).
 """RQ worker entrypoint.
 
-Run via `python -m src.main` or `rq worker --url $REDIS_URL default`.
+Run via `python -m worker.main` or `rq worker --url $REDIS_URL default`.
 The default queue handles all tasks unless a specific queue name is
 passed at startup.
 """

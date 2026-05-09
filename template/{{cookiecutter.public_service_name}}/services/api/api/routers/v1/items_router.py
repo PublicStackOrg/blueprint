@@ -19,8 +19,8 @@ from grid_adapters.identity import CurrentUser
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.dependencies import get_current_user, get_session
-from src.schemas import ItemCreate, ItemRead
+from api.dependencies import get_current_user, get_session
+from api.schemas import ItemCreate, ItemRead
 
 router = APIRouter()
 
