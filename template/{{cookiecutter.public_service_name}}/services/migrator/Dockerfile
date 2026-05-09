@@ -14,7 +14,7 @@ RUN pip install "poetry==${POETRY_VERSION}"
 
 WORKDIR /workspace
 
-COPY libraries/core /workspace/libraries/core
+COPY libraries /workspace/libraries
 COPY services/migrator /workspace/services/migrator
 
 WORKDIR /workspace/services/migrator

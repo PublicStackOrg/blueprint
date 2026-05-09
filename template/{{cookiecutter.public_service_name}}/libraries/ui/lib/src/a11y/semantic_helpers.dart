@@ -6,6 +6,7 @@
 // These helpers are the easy primitives apps reach for.
 
 import 'package:flutter/material.dart';
+import 'package:flutter/semantics.dart';
 
 /// Wraps a widget with a semantic label. Use when a widget's visual
 /// content alone doesn't convey its purpose to a screen reader (icons,

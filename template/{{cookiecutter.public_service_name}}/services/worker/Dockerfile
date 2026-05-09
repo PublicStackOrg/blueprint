@@ -12,8 +12,7 @@ RUN pip install "poetry==${POETRY_VERSION}"
 
 WORKDIR /workspace
 
-COPY libraries/core /workspace/libraries/core
-COPY libraries/grid_adapters /workspace/libraries/grid_adapters
+COPY libraries /workspace/libraries
 COPY services/worker /workspace/services/worker
 
 WORKDIR /workspace/services/worker

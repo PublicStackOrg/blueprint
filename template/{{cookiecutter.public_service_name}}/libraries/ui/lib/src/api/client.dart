@@ -15,6 +15,8 @@ class ApiClient {
 
   String? _authToken;
 
+  String? get authToken => _authToken;
+
   void setAuthToken(String? token) {
     _authToken = token;
     if (token == null) {

@@ -15,9 +15,10 @@ RUN pip install "poetry==${POETRY_VERSION}"
 
 WORKDIR /workspace
 
-# Copy the path-dep libraries first so the Poetry resolver can resolve them.
-COPY libraries/core /workspace/libraries/core
-COPY libraries/grid_adapters /workspace/libraries/grid_adapters
+# Copy every library in one shot — Poetry resolves path-dep paths for
+# dev groups too, so test_helper (a dev-only dep of api) needs to exist
+# even though `--only main` won't install it.
+COPY libraries /workspace/libraries
 COPY services/api /workspace/services/api
 
 WORKDIR /workspace/services/api

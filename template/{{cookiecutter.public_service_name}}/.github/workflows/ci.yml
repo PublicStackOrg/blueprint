@@ -52,6 +52,9 @@ jobs:
         run: pipx install "poetry==${{ env.POETRY_VERSION }}"
       - name: Install workspace deps
         run: poetry install --no-interaction --no-root
+      - name: Install migrator (separate Poetry env)
+        run: poetry install --no-interaction --no-root
+        working-directory: services/migrator
       - name: Run migrations
         run: poetry run alembic upgrade head
         working-directory: services/migrator

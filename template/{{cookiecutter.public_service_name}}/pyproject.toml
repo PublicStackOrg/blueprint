@@ -22,9 +22,11 @@ develop = true
 path = "services/worker"
 develop = true
 
-[tool.poetry.dependencies.migrator]
-path = "services/migrator"
-develop = true
+# `migrator` is intentionally NOT a workspace path-dep. It uses
+# `package-mode = false` (Alembic + a migrations/ tree, no importable
+# package), so Poetry can't editable-install it from this workspace.
+# Install it separately with `cd services/migrator && poetry install`
+# when you need to run migrations.
 
 [tool.poetry.dependencies.core]
 path = "libraries/core"
