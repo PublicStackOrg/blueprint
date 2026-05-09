@@ -19,6 +19,7 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^5.0.0
+  dio: ^5.7.0  # used in widget_test.dart for fake api response construction
 
 flutter:
   uses-material-design: true
