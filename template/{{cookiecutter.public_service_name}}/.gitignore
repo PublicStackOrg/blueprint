@@ -39,10 +39,11 @@ node_modules/
 **/*.iml
 **/.idea/
 
-# --- Docker / data -----------------------------------------------------------
-storage/
-postgres-data/
-redis-data/
+# --- Docker / data (root-level only — anchored, so we don't accidentally
+# ignore Python packages or modules named the same thing) ------------------
+/storage/
+/postgres-data/
+/redis-data/
 
 # --- IDE ---------------------------------------------------------------------
 .vscode/
