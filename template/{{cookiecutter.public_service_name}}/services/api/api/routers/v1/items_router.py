@@ -14,7 +14,7 @@ from uuid import UUID
 from core.api.endpoint import APIException
 from core.api.error_codes import ErrorCode
 from core.db.models import Item
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, Response, status
 from grid_adapters.identity import CurrentUser
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -58,13 +58,14 @@ async def get_item(
     return ItemRead.model_validate(item)
 
 
-@router.delete("/{item_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete("/{item_id}", status_code=status.HTTP_204_NO_CONTENT, response_class=Response)
 async def delete_item(
     item_id: UUID,
     session: AsyncSession = Depends(get_session),
     user: CurrentUser = Depends(get_current_user),
-) -> None:
+) -> Response:
     item = await session.get(Item, item_id)
     if item is None:
         raise APIException(ErrorCode.NOT_FOUND, "item not found", status_code=404)
     await session.delete(item)
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
