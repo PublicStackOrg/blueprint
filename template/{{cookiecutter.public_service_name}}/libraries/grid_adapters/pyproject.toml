@@ -1,0 +1,20 @@
+[tool.poetry]
+name = "grid_adapters"
+version = "0.0.1"
+description = "Pluggable adapters for the PublicStack Grid (queue, storage, identity, notifications)."
+authors = ["PublicStack <hello@publicstack.org>"]
+license = "AGPL-3.0-or-later"
+package-mode = true
+packages = [{ include = "grid_adapters" }]
+
+[tool.poetry.dependencies]
+python = "^3.13"
+rq = "^2.0.0"
+redis = "^5.2.0"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.3.0"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"

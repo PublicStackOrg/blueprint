@@ -1,0 +1,17 @@
+{
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "name": "test_helper",
+  "projectType": "library",
+  "sourceRoot": "libraries/test_helper/test_helper",
+  "tags": ["lib:python", "test"],
+  "targets": {
+    "install": {
+      "executor": "nx:run-commands",
+      "options": { "commands": ["poetry install"], "cwd": "libraries/test_helper" }
+    },
+    "lint": {
+      "executor": "nx:run-commands",
+      "options": { "commands": ["poetry run ruff check test_helper/"], "cwd": "libraries/test_helper" }
+    }
+  }
+}

@@ -1,0 +1,23 @@
+[tool.poetry]
+name = "core"
+version = "0.0.1"
+description = "Shared models, db, config, and API base classes for {{ cookiecutter.public_service_name }}."
+authors = ["PublicStack <hello@publicstack.org>"]
+license = "AGPL-3.0-or-later"
+package-mode = true
+packages = [{ include = "core" }]
+
+[tool.poetry.dependencies]
+python = "^3.13"
+sqlalchemy = { version = "^2.0.36", extras = ["asyncio"] }
+asyncpg = "^0.30.0"
+pydantic = "^2.10.0"
+pydantic-settings = "^2.7.0"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.3.0"
+pytest-asyncio = "^0.24.0"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
