@@ -1,0 +1,79 @@
+# {{ cookiecutter.public_service_name }} — local dev stack.
+#
+# `./scripts/dev.sh` brings everything up. Override with `.env` (copied
+# from `.env.example`).
+
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: {{ cookiecutter.python_package }}
+      POSTGRES_PASSWORD: {{ cookiecutter.python_package }}
+      POSTGRES_DB: {{ cookiecutter.python_package }}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "{{ cookiecutter.python_package }}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  migrator:
+    build:
+      context: .
+      dockerfile: services/migrator/Dockerfile
+    environment:
+      DATABASE_URL: postgresql+asyncpg://{{ cookiecutter.python_package }}:{{ cookiecutter.python_package }}@db:5432/{{ cookiecutter.python_package }}
+    depends_on:
+      db:
+        condition: service_healthy
+
+  api:
+    build:
+      context: .
+      dockerfile: services/api/Dockerfile
+    environment:
+      DATABASE_URL: postgresql+asyncpg://{{ cookiecutter.python_package }}:{{ cookiecutter.python_package }}@db:5432/{{ cookiecutter.python_package }}
+      REDIS_URL: redis://redis:6379/0
+      AUTH_MODE: none
+      LOG_LEVEL: INFO
+      ENVIRONMENT: local
+      CORS_ORIGINS: http://localhost:3000,http://localhost:3001,http://localhost:3002
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      migrator:
+        condition: service_completed_successfully
+
+  worker:
+    build:
+      context: .
+      dockerfile: services/worker/Dockerfile
+    environment:
+      DATABASE_URL: postgresql+asyncpg://{{ cookiecutter.python_package }}:{{ cookiecutter.python_package }}@db:5432/{{ cookiecutter.python_package }}
+      REDIS_URL: redis://redis:6379/0
+      LOG_LEVEL: INFO
+    depends_on:
+      redis:
+        condition: service_healthy
+      migrator:
+        condition: service_completed_successfully
+
+volumes:
+  postgres_data:

@@ -1,0 +1,25 @@
+name: Release
+
+# Release-tagged builds for mobile apps and signed deploy artifacts.
+#
+# Filled in during Phase 6 / 8 of blueprint's plan, when:
+#   - iOS / Android signing is wired up (App Store / Play Store secrets).
+#   - Hosted-tier Docker images push to GHCR.
+#   - Helm chart publishes to a chart registry.
+#
+# For now this workflow is a stub so the path exists and the trigger
+# shape is documented.
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+
+jobs:
+  noop:
+    name: Placeholder
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          echo "Release workflow placeholder — filled in by blueprint Phase 6/8."
+          echo "Tag: ${{ github.ref_name }}"

@@ -1,0 +1,182 @@
+name: blueprint CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  render-and-validate:
+    name: Render template + validate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Install cookiecutter
+        run: pipx install cookiecutter
+
+      - name: Render template
+        run: |
+          cookiecutter ./template/ --no-input -o /tmp/render \
+              public_service_name=SmokeTest
+
+      - name: Verify tree shape
+        run: |
+          set -euo pipefail
+          ROOT=/tmp/render/SmokeTest
+          test -f "$ROOT/README.md"
+          test -f "$ROOT/LICENSE"
+          test -f "$ROOT/CLAUDE.md"
+          test -f "$ROOT/BLUEPRINT_VERSION"
+          test -f "$ROOT/pyproject.toml"
+          test -f "$ROOT/package.json"
+          test -f "$ROOT/nx.json"
+          test -f "$ROOT/docker-compose.yml"
+          test -f "$ROOT/.github/workflows/ci.yml"
+          test -d "$ROOT/services/api"
+          test -d "$ROOT/services/worker"
+          test -d "$ROOT/services/migrator"
+          test -d "$ROOT/libraries/core"
+          test -d "$ROOT/libraries/grid_adapters"
+          test -d "$ROOT/libraries/test_helper"
+          test -d "$ROOT/libraries/ui"
+          test -d "$ROOT/apps/resident"
+          test -d "$ROOT/apps/staff"
+          test -d "$ROOT/apps/kiosk"
+
+      - name: No leftover cookiecutter markers
+        run: |
+          set -euo pipefail
+          # Real cookiecutter substitutions all reference `cookiecutter.`.
+          # Workflow files are _copy_without_render and contain ${{ }}
+          # GitHub Actions expressions; those are fine.
+          if grep -rn '{{ *cookiecutter\.' /tmp/render/SmokeTest/ \
+              | grep -v '\.git/' ; then
+            echo "leftover cookiecutter substitutions in rendered tree — fix the template"
+            exit 1
+          fi
+
+      - name: Every pyproject.toml parses
+        run: |
+          set -euo pipefail
+          find /tmp/render/SmokeTest -name pyproject.toml -not -path '*/node_modules/*' \
+              | while read -r f; do
+                  python3 -c "import tomllib; tomllib.load(open('$f','rb'))" \
+                      || { echo "bad pyproject: $f"; exit 1; }
+                done
+
+      - name: Every Python file compiles
+        run: |
+          python3 -m compileall -q /tmp/render/SmokeTest/services /tmp/render/SmokeTest/libraries
+
+      - name: Every workflow YAML parses
+        run: |
+          set -euo pipefail
+          for f in /tmp/render/SmokeTest/.github/workflows/*.yml; do
+            python3 -c "import yaml; yaml.safe_load(open('$f'))" \
+                || { echo "bad yaml: $f"; exit 1; }
+          done
+
+  generated-ps-tests:
+    name: Generated PS — Python tests
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: test
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+      redis:
+        image: redis:7-alpine
+        ports: ["6379:6379"]
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      DATABASE_URL: postgresql+asyncpg://postgres:postgres@localhost:5432/test
+      SYNC_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test
+      TEST_DATABASE_URL: postgresql+asyncpg://postgres:postgres@localhost:5432/test
+      REDIS_URL: redis://localhost:6379/0
+      AUTH_MODE: none
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - run: pipx install cookiecutter "poetry==2.2.1"
+      - name: Render template
+        run: |
+          cookiecutter ./template/ --no-input -o /tmp/render \
+              public_service_name=SmokeTest
+      - name: Install workspace deps
+        working-directory: /tmp/render/SmokeTest
+        run: poetry install --no-interaction --no-root
+      - name: Run migrations
+        working-directory: /tmp/render/SmokeTest/services/migrator
+        run: poetry run alembic upgrade head
+      - name: Lint
+        working-directory: /tmp/render/SmokeTest
+        run: poetry run ruff check libraries services
+      - name: Test (libraries)
+        working-directory: /tmp/render/SmokeTest
+        run: poetry run pytest libraries
+      - name: Test (services)
+        working-directory: /tmp/render/SmokeTest
+        run: poetry run pytest services
+
+  generated-ps-flutter:
+    name: Generated PS — Flutter analyze + test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - run: pipx install cookiecutter
+      - name: Render template
+        run: |
+          cookiecutter ./template/ --no-input -o /tmp/render \
+              public_service_name=SmokeTest
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: "3.27.4"
+          channel: stable
+          cache: true
+      - name: ui — pub get + analyze + test
+        working-directory: /tmp/render/SmokeTest/libraries/ui
+        run: |
+          flutter pub get
+          flutter analyze
+          flutter test
+      - name: resident — pub get + analyze + test
+        working-directory: /tmp/render/SmokeTest/apps/resident
+        run: |
+          flutter pub get
+          flutter analyze
+          flutter test
+      - name: staff — pub get + analyze + test
+        working-directory: /tmp/render/SmokeTest/apps/staff
+        run: |
+          flutter pub get
+          flutter analyze
+          flutter test
+      - name: kiosk — pub get + analyze + test
+        working-directory: /tmp/render/SmokeTest/apps/kiosk
+        run: |
+          flutter pub get
+          flutter analyze
+          flutter test

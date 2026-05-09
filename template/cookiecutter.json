@@ -6,6 +6,7 @@
     "github_org": "PublicStackOrg",
     "blueprint_version": "0.1.0",
     "_copy_without_render": [
-        "LICENSE"
+        "LICENSE",
+        ".github/workflows/*.yml"
     ]
 }

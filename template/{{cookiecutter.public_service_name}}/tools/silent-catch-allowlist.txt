@@ -1,0 +1,9 @@
+# tools/silent-catch-allowlist.txt
+#
+# Lines exempted from no-silent-catch-check.sh. One per line, format:
+#
+#   <relative_path>:<lineno>:<reason>
+#
+# The reason is for human review during PR — it doesn't get parsed.
+# Empty file by default — every silent catch is a real bug until proven
+# otherwise.
