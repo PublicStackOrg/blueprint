@@ -3,6 +3,8 @@
 
 from __future__ import annotations
 
+import logging
+
 from grid_adapters.identity import NoAuthAdapter
 from grid_adapters.notifications import LogOnlyAdapter
 from grid_adapters.storage import LocalFilesystemAdapter
@@ -24,6 +26,7 @@ async def test_no_auth_returns_dev_user():
 
 
 def test_log_only_notifications(caplog):
+    caplog.set_level(logging.INFO, logger="grid_adapters.notifications")
     adapter = LogOnlyAdapter()
     adapter.send(to="someone@example.com", subject="hi", body="test")
-    assert any("notification (log-only)" in r.message for r in caplog.records)
+    assert any("notification (log-only)" in r.getMessage() for r in caplog.records)
