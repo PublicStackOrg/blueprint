@@ -8,6 +8,7 @@ Wires lifespan setup, middleware, routers, and observability.
 from __future__ import annotations
 
 import logging
+import uuid
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 
@@ -19,7 +20,6 @@ from fastapi.responses import JSONResponse
 from prometheus_fastapi_instrumentator import Instrumentator
 
 from api.config import get_settings
-from api.middleware.error_tracking import ErrorTrackingMiddleware
 from api.routers.v1_router import v1_router
 
 logger = logging.getLogger(__name__)
@@ -53,7 +53,6 @@ app = FastAPI(
 
 settings = get_settings()
 
-app.add_middleware(ErrorTrackingMiddleware)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.cors_origins_list,
@@ -72,6 +71,30 @@ async def api_exception_handler(request: Request, exc: APIException) -> JSONResp
             "error_message": exc.message,
             "data": exc.data,
         },
+    )
+
+
+@app.exception_handler(Exception)
+async def unhandled_exception_handler(request: Request, exc: Exception) -> JSONResponse:
+    """Catch-all for anything that escapes route handlers.
+
+    Generates a request id, logs the exception with context, and returns a
+    structured 500. Replaces the BaseHTTPMiddleware-based ErrorTrackingMiddleware
+    that broke async-DB tests with 'Future attached to a different loop'.
+    """
+    request_id = str(uuid.uuid4())
+    logger.exception(
+        "unhandled error",
+        extra={"request_id": request_id, "path": request.url.path},
+    )
+    return JSONResponse(
+        status_code=500,
+        content={
+            "error_code": "internal",
+            "error_message": "internal server error",
+            "data": {"request_id": request_id},
+        },
+        headers={"X-Request-Id": request_id},
     )
 
 
