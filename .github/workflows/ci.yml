@@ -53,8 +53,8 @@ jobs:
         run: |
           set -euo pipefail
           # Real cookiecutter substitutions all reference `cookiecutter.`.
-          # Workflow files are _copy_without_render and contain ${{ }}
-          # GitHub Actions expressions; those are fine.
+          # Workflow files are _copy_without_render and contain GitHub
+          # Actions expressions; those are fine.
           if grep -rn '{{ *cookiecutter\.' /tmp/render/SmokeTest/ \
               | grep -v '\.git/' ; then
             echo "leftover cookiecutter substitutions in rendered tree — fix the template"
