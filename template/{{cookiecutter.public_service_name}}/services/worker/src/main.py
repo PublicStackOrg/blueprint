@@ -10,13 +10,11 @@ passed at startup.
 from __future__ import annotations
 
 import logging
-import os
 import sys
 
+from core.config import Settings
 from redis import Redis
 from rq import Worker
-
-from core.config import Settings
 
 
 def main() -> int:

@@ -4,9 +4,8 @@
 
 from __future__ import annotations
 
-from pydantic import Field
-
 from core.config import Settings
+from pydantic import Field
 
 
 class APISettings(Settings):

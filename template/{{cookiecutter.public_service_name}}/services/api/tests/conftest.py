@@ -11,11 +11,10 @@ from __future__ import annotations
 import os
 
 import pytest_asyncio
-from httpx import ASGITransport, AsyncClient
-from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
-
 from core.db.base import Base
 from core.db.models import Item  # noqa: F401  -- registers metadata
+from httpx import ASGITransport, AsyncClient
+from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
 
 @pytest_asyncio.fixture(scope="session")

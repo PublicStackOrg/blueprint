@@ -8,16 +8,16 @@ Wires lifespan setup, middleware, routers, and observability.
 from __future__ import annotations
 
 import logging
-from contextlib import asynccontextmanager
 from collections.abc import AsyncIterator
+from contextlib import asynccontextmanager
 
+from core.api.endpoint import APIException
+from core.db.session import make_engine, make_session_maker
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from prometheus_fastapi_instrumentator import Instrumentator
 
-from core.api.endpoint import APIException
-from core.db.session import make_engine, make_session_maker
 from src.config import get_settings
 from src.middleware.error_tracking import ErrorTrackingMiddleware
 from src.routers.v1_router import v1_router

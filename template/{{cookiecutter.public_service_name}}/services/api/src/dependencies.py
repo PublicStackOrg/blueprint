@@ -7,9 +7,9 @@ from __future__ import annotations
 from collections.abc import AsyncIterator
 
 from fastapi import Depends, Header, Request
+from grid_adapters.identity import CurrentUser, IdentityAdapter, NoAuthAdapter
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from grid_adapters.identity import CurrentUser, IdentityAdapter, NoAuthAdapter
 from src.config import APISettings, get_settings
 
 

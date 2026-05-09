@@ -58,7 +58,11 @@ extend-exclude = ["migrations/versions"]
 
 [tool.ruff.lint]
 select = ["E", "F", "W", "I", "N", "UP", "B", "C4", "SIM"]
-ignore = ["E501"]
+ignore = [
+    "E501",  # line length — formatter handles wrapping
+    "B008",  # FastAPI's Depends-in-default-arg is the canonical pattern
+    "N818",  # APIException is a base class; Error suffix doesn't fit
+]
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"

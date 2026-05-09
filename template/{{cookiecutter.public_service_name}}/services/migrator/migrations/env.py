@@ -14,10 +14,9 @@ import os
 from logging.config import fileConfig
 
 from alembic import context
-from sqlalchemy import engine_from_config, pool
-
-from core.db.base import Base
 from core.db import models  # noqa: F401  -- side-effect: registers Item against Base.metadata
+from core.db.base import Base
+from sqlalchemy import engine_from_config, pool
 
 config = context.config
 
