@@ -1,0 +1,25 @@
+{
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "name": "kiosk",
+  "projectType": "application",
+  "sourceRoot": "apps/kiosk/lib",
+  "tags": ["app:flutter", "app:kiosk"],
+  "targets": {
+    "install": {
+      "executor": "nx:run-commands",
+      "options": { "commands": ["flutter pub get"], "cwd": "apps/kiosk" }
+    },
+    "lint": {
+      "executor": "nx:run-commands",
+      "options": { "commands": ["flutter analyze"], "cwd": "apps/kiosk" }
+    },
+    "test": {
+      "executor": "nx:run-commands",
+      "options": { "commands": ["flutter test"], "cwd": "apps/kiosk" }
+    },
+    "build": {
+      "executor": "nx:run-commands",
+      "options": { "commands": ["flutter build web --release"], "cwd": "apps/kiosk" }
+    }
+  }
+}
