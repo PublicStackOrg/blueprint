@@ -48,6 +48,8 @@ jobs:
         run: pipx install ./cli
       - name: Install publicstack-contracts CLI
         run: pipx install ./contracts/tooling
+      - name: Install publicstack-compliance CLI
+        run: pipx install ./compliance
       - name: Generate a Public Service
         run: |
           mkdir -p "${RUNNER_TEMP}/out"
@@ -71,3 +73,21 @@ jobs:
           for f in blueprint/grid/*/contract.yaml; do
             publicstack-contracts validate "$f"
           done
+      - name: Run compliance suite (skip a11y on minimal runner)
+        working-directory: ${{ runner.temp }}/out/tmp
+        run: |
+          publicstack-compliance run \
+            --check data_export \
+            --check contract_compat \
+            --check grid_integration \
+            --check security \
+            --check observability
+      - name: §10 acceptance — removing export_router fails data_export
+        working-directory: ${{ runner.temp }}/out/tmp
+        run: |
+          rm services/api/api/routers/v1/export_router.py
+          # Expect exit 1 with a DEX-001 finding for Item.
+          if publicstack-compliance run --check data_export; then
+            echo "expected data_export to fail after removing export_router"
+            exit 1
+          fi
