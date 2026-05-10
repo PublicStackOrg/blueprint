@@ -8,6 +8,21 @@ from in their `BLUEPRINT_VERSION` file.
 
 ## [Unreleased]
 
+### Added
+
+- **Eight Claude skills** at `.claude/skills/` in the workspace repo
+  (`PublicStackOrg/PublicStack`) — Phase 7 of `docs/PLAN.md`. Skills
+  orchestrate the publicstack / publicstack-contracts /
+  publicstack-compliance CLIs with judgment:
+  `new-service`, `add-internal-service`, `add-app`, `add-contract`,
+  `add-grid-integration`, `compliance-fix`, `upgrade-blueprint`,
+  `hosting-runbook`. Plus `.claude/skills/README.md` documenting the
+  index, file format, and authoring conventions. install.sh already
+  symlinks `.claude/skills/` into every cloned repo — no install.sh
+  changes needed.
+- Skills land in the **workspace repo**, not blueprint. Blueprint
+  template + CLIs unchanged; v0.4.0 stays current.
+
 ## [0.4.0] — 2026-05-10
 
 ### Added
