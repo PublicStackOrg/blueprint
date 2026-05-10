@@ -1,0 +1,45 @@
+[tool.poetry]
+name = "publicstack-compliance"
+version = "0.1.0"
+description = "PublicStack compliance suite — verifies a generated Public Service meets the six PublicStack standards."
+authors = ["PublicStack <hello@publicstack.org>"]
+license = "AGPL-3.0-or-later"
+readme = "README.md"
+packages = [{ include = "publicstack_compliance", from = "src" }]
+include = ["src/publicstack_compliance/_vendor/*"]
+
+[tool.poetry.dependencies]
+python = "^3.13"
+typer = { extras = ["all"], version = ">=0.16,<1.0" }
+pyyaml = "^6.0"
+tomlkit = "^0.13"
+"pip-audit" = "^2.7"
+playwright = "^1.48"
+publicstack-contracts = { path = "../contracts/tooling", develop = true }
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.3.0"
+pytest-cov = "^5.0.0"
+ruff = "^0.7.0"
+
+[tool.poetry.scripts]
+publicstack-compliance = "publicstack_compliance.cli:app"
+
+[tool.ruff]
+line-length = 100
+target-version = "py313"
+extend-exclude = ["src/publicstack_compliance/_vendor"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "N", "UP", "B", "C4", "SIM"]
+ignore = ["E501", "B008", "N818"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = [
+    "slow: marks slow integration tests (deselect with '-m \"not slow\"')",
+]
+
+[build-system]
+requires = ["poetry-core>=1.9.0"]
+build-backend = "poetry.core.masonry.api"
