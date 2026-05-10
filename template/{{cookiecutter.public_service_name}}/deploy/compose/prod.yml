@@ -1,0 +1,121 @@
+# {{ cookiecutter.public_service_name }} — production single-VPS docker-compose stack.
+#
+# Usage:
+#   cp deploy/compose/.env.prod.example .env.prod
+#   vi .env.prod                        # set PUBLIC_HOSTNAME + secrets
+#   docker compose -f deploy/compose/prod.yml --env-file .env.prod up -d
+#
+# DNS prerequisite: PUBLIC_HOSTNAME must resolve to this VPS *before* first
+# boot, otherwise Caddy can't acquire a Let's Encrypt certificate.
+#
+# All services run on an internal docker network. Only Caddy publishes
+# host ports (80, 443). Postgres / Redis / api / worker are not exposed
+# to the internet.
+
+services:
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"             # HTTP/3
+    environment:
+      PUBLIC_HOSTNAME: ${PUBLIC_HOSTNAME:?set PUBLIC_HOSTNAME in .env.prod}
+      METRICS_BASIC_AUTH: ${METRICS_BASIC_AUTH:?set METRICS_BASIC_AUTH (htpasswd-format) in .env.prod}
+    volumes:
+      - ./deploy/compose/Caddyfile:/etc/caddy/Caddyfile:ro
+      - ./apps/resident/build/web:/srv/resident:ro
+      - ./apps/staff/build/web:/srv/staff:ro
+      - ./apps/kiosk/build/web:/srv/kiosk:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - api
+
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: {{ cookiecutter.python_package }}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env.prod}
+      POSTGRES_DB: {{ cookiecutter.python_package }}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "{{ cookiecutter.python_package }}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: ["redis-server", "--requirepass", "${REDIS_PASSWORD:?set REDIS_PASSWORD in .env.prod}", "--appendonly", "yes"]
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "$$REDIS_PASSWORD", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+
+  migrator:
+    image: ghcr.io/{{ cookiecutter.github_org|lower }}/{{ cookiecutter.python_package }}-migrator:${IMAGE_TAG:-latest}
+    restart: "no"
+    environment:
+      DATABASE_URL: postgresql+asyncpg://{{ cookiecutter.python_package }}:${POSTGRES_PASSWORD}@db:5432/{{ cookiecutter.python_package }}
+      SYNC_DATABASE_URL: postgresql://{{ cookiecutter.python_package }}:${POSTGRES_PASSWORD}@db:5432/{{ cookiecutter.python_package }}
+    depends_on:
+      db:
+        condition: service_healthy
+
+  api:
+    image: ghcr.io/{{ cookiecutter.github_org|lower }}/{{ cookiecutter.python_package }}-api:${IMAGE_TAG:-latest}
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgresql+asyncpg://{{ cookiecutter.python_package }}:${POSTGRES_PASSWORD}@db:5432/{{ cookiecutter.python_package }}
+      REDIS_URL: redis://:${REDIS_PASSWORD}@redis:6379/0
+      AUTH_MODE: ${AUTH_MODE:-none}
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+      ENVIRONMENT: prod
+      CORS_ORIGINS: https://${PUBLIC_HOSTNAME}
+      AUDIT_BACKEND: ${AUDIT_BACKEND:-postgres}
+      DOCUMENT_STORAGE_BACKEND: ${DOCUMENT_STORAGE_BACKEND:-local}
+      DOCUMENT_STORAGE_LOCAL_ROOT: ${DOCUMENT_STORAGE_LOCAL_ROOT:-/var/lib/{{ cookiecutter.python_package }}/document_storage}
+      NOTIFICATIONS_BACKEND: ${NOTIFICATIONS_BACKEND:-log_only}
+      PAYMENTS_BACKEND: ${PAYMENTS_BACKEND:-log_only}
+      ACCESSIBILITY_BACKEND: ${ACCESSIBILITY_BACKEND:-in_memory}
+      OTEL_SERVICE_NAME: {{ cookiecutter.python_package }}
+      OTEL_EXPORTER_OTLP_ENDPOINT: ${OTEL_EXPORTER_OTLP_ENDPOINT:-}
+      OTEL_SDK_DISABLED: ${OTEL_SDK_DISABLED:-false}
+    volumes:
+      - document_storage:${DOCUMENT_STORAGE_LOCAL_ROOT:-/var/lib/{{ cookiecutter.python_package }}/document_storage}
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      migrator:
+        condition: service_completed_successfully
+
+  worker:
+    image: ghcr.io/{{ cookiecutter.github_org|lower }}/{{ cookiecutter.python_package }}-worker:${IMAGE_TAG:-latest}
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgresql+asyncpg://{{ cookiecutter.python_package }}:${POSTGRES_PASSWORD}@db:5432/{{ cookiecutter.python_package }}
+      REDIS_URL: redis://:${REDIS_PASSWORD}@redis:6379/0
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+      ENVIRONMENT: prod
+    depends_on:
+      redis:
+        condition: service_healthy
+      migrator:
+        condition: service_completed_successfully
+
+volumes:
+  postgres_data:
+  redis_data:
+  caddy_data:
+  caddy_config:
+  document_storage:
