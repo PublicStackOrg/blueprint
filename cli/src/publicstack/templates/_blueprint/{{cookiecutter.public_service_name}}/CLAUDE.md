@@ -32,6 +32,11 @@ to each other only through Contracts.
   shared `libraries/ui` design system.
 - **Monorepo tooling:** NX 22+ with `@nxlv/python` plugin + Poetry.
 - **Mandatory dependencies:** Postgres 16, Redis.
+- **Observability:** Prometheus `/metrics`, OpenTelemetry tracing
+  (FastAPIInstrumentor), structured JSON logging via
+  python-json-logger. The compliance suite enforces all three.
+- **Security middleware:** `Content-Security-Policy: default-src 'self'`
+  on every response; `HTTPSRedirectMiddleware` outside local dev.
 - **Optional / pluggable:** queue (RQ default), object storage
   (local-fs default; S3/GCS/R2 via adapter), identity (no-auth dev
   stub default; real impl per blueprint's `docs/SPIKES.md`).

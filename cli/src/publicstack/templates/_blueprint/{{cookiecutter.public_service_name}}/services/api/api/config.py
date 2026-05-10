@@ -4,6 +4,8 @@
 
 from __future__ import annotations
 
+from typing import Literal
+
 from core.config import Settings
 from pydantic import Field
 
@@ -11,6 +13,14 @@ from pydantic import Field
 class APISettings(Settings):
     api_host: str = Field(default="0.0.0.0")
     api_port: int = Field(default=8000)
+
+    environment: Literal["local", "staging", "prod"] = Field(
+        default="local",
+        description=(
+            "Deployment environment. Gates HTTPS-redirect middleware: "
+            "non-local environments enforce HTTPS at the edge."
+        ),
+    )
 
     auth_mode: str = Field(
         default="none",

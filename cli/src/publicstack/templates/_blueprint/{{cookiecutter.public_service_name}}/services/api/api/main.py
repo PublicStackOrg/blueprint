@@ -16,8 +16,13 @@ from core.api.endpoint import APIException
 from core.db.session import make_engine, make_session_maker
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.httpsredirect import HTTPSRedirectMiddleware
 from fastapi.responses import JSONResponse
+from opentelemetry import trace
+from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
 from prometheus_fastapi_instrumentator import Instrumentator
+from pythonjsonlogger import jsonlogger
+from starlette.middleware.base import BaseHTTPMiddleware
 
 from api.config import get_settings
 from api.routers.v1_router import v1_router
@@ -25,10 +30,38 @@ from api.routers.v1_router import v1_router
 logger = logging.getLogger(__name__)
 
 
+def _configure_logging(level: str) -> None:
+    """Replace stdlib basicConfig with a python-json-logger JsonFormatter
+    on the root logger so structured fields (request_id, trace_id, ...)
+    surface as JSON keys."""
+    handler = logging.StreamHandler()
+    handler.setFormatter(jsonlogger.JsonFormatter(
+        "%(asctime)s %(levelname)s %(name)s %(message)s"
+    ))
+    root = logging.getLogger()
+    root.handlers = [handler]
+    root.setLevel(level.upper())
+
+
+class CSPMiddleware(BaseHTTPMiddleware):
+    """Set a basic Content-Security-Policy header on every response.
+
+    `default-src 'self'` is conservative; tighten or relax in your own
+    middleware as needed (e.g., to allow a CDN).
+    """
+
+    async def dispatch(self, request, call_next):
+        response = await call_next(request)
+        response.headers.setdefault(
+            "Content-Security-Policy", "default-src 'self'"
+        )
+        return response
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     settings = get_settings()
-    logging.basicConfig(level=settings.log_level.upper())
+    _configure_logging(settings.log_level)
 
     engine = make_engine(settings.database_url)
     app.state.db_engine = engine
@@ -53,6 +86,14 @@ app = FastAPI(
 
 settings = get_settings()
 
+# CSP first so it applies to every response, including HTTPS redirects.
+app.add_middleware(CSPMiddleware)
+
+# HTTPSRedirectMiddleware only outside local dev (otherwise the dev loop
+# can't run on http://localhost).
+if settings.environment != "local":
+    app.add_middleware(HTTPSRedirectMiddleware)
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.cors_origins_list,
@@ -60,6 +101,10 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# OpenTelemetry tracing. Configure exporters via OTEL_* env vars; default
+# exporter is OTLP gRPC. Tests set OTEL_SDK_DISABLED=true to silence.
+FastAPIInstrumentor().instrument_app(app)
 
 
 @app.exception_handler(APIException)
@@ -76,16 +121,20 @@ async def api_exception_handler(request: Request, exc: APIException) -> JSONResp
 
 @app.exception_handler(Exception)
 async def unhandled_exception_handler(request: Request, exc: Exception) -> JSONResponse:
-    """Catch-all for anything that escapes route handlers.
-
-    Generates a request id, logs the exception with context, and returns a
-    structured 500. Replaces the BaseHTTPMiddleware-based ErrorTrackingMiddleware
-    that broke async-DB tests with 'Future attached to a different loop'.
-    """
+    """Catch-all for anything that escapes route handlers."""
     request_id = str(uuid.uuid4())
+    span = trace.get_current_span()
+    trace_id = ""
+    if span and span.get_span_context().is_valid:
+        trace_id = format(span.get_span_context().trace_id, "032x")
     logger.exception(
         "unhandled error",
-        extra={"request_id": request_id, "path": request.url.path},
+        extra={
+            "request_id": request_id,
+            "path": request.url.path,
+            "trace_id": trace_id,
+            "service": "{{ cookiecutter.public_service_slug }}",
+        },
     )
     return JSONResponse(
         status_code=500,
