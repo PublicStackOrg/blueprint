@@ -5,6 +5,7 @@ from __future__ import annotations
 from collections.abc import Callable
 from pathlib import Path
 
+from publicstack_compliance.checks import data_export
 from publicstack_compliance.findings import Finding
 
 
@@ -24,7 +25,7 @@ def _stub(name: str) -> Callable[[Path], list[Finding]]:
 
 
 CHECKS: dict[str, Callable[[Path], list[Finding]]] = {
-    "data_export": _stub("data_export"),
+    "data_export": data_export.run,
     "contract_compat": _stub("contract_compat"),
     "grid_integration": _stub("grid_integration"),
     "security": _stub("security"),

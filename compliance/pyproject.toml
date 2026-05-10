@@ -28,7 +28,7 @@ publicstack-compliance = "publicstack_compliance.cli:app"
 [tool.ruff]
 line-length = 100
 target-version = "py313"
-extend-exclude = ["src/publicstack_compliance/_vendor"]
+extend-exclude = ["src/publicstack_compliance/_vendor", "tests/fixtures"]
 
 [tool.ruff.lint]
 select = ["E", "F", "W", "I", "N", "UP", "B", "C4", "SIM"]
