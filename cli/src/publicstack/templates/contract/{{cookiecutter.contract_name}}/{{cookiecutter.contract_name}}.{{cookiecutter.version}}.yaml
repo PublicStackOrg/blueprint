@@ -1,0 +1,10 @@
+openapi: 3.1.0
+info:
+  title: {{ cookiecutter.contract_name }}
+  version: {{ cookiecutter.version }}
+  description: |
+    PublicStack contract: {{ cookiecutter.contract_name }} ({{ cookiecutter.version }}).
+    Fill in paths and components below.
+paths: {}
+components:
+  schemas: {}

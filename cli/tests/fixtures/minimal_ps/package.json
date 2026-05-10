@@ -1,0 +1,12 @@
+{
+  "name": "minimal_ps",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "dev": "./scripts/dev.sh",
+    "flutter:resident": "./scripts/flutter-run.sh resident"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

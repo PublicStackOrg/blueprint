@@ -1,0 +1,5 @@
+{
+    "service_name": "myservice",
+    "python_package": "{{ cookiecutter.service_name|lower|replace('-', '_') }}",
+    "_copy_without_render": [".github"]
+}

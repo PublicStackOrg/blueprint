@@ -1,0 +1,25 @@
+{
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "name": "api",
+  "projectType": "application",
+  "sourceRoot": "services/api/api",
+  "tags": ["service:python", "service:api"],
+  "targets": {
+    "install": {
+      "executor": "nx:run-commands",
+      "options": { "commands": ["poetry install"], "cwd": "services/api" }
+    },
+    "lint": {
+      "executor": "nx:run-commands",
+      "options": { "commands": ["poetry run ruff check api/ tests/"], "cwd": "services/api" }
+    },
+    "test": {
+      "executor": "nx:run-commands",
+      "options": { "commands": ["poetry run pytest"], "cwd": "services/api" }
+    },
+    "build": {
+      "executor": "nx:run-commands",
+      "options": { "commands": ["docker build -f services/api/Dockerfile -t api:dev ."], "cwd": "." }
+    }
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "name": "core",
+  "projectType": "library",
+  "sourceRoot": "libraries/core/core",
+  "tags": ["lib:python"],
+  "targets": {
+    "install": {
+      "executor": "nx:run-commands",
+      "options": { "commands": ["poetry install"], "cwd": "libraries/core" }
+    },
+    "lint": {
+      "executor": "nx:run-commands",
+      "options": { "commands": ["poetry run ruff check core/ tests/"], "cwd": "libraries/core" }
+    },
+    "test": {
+      "executor": "nx:run-commands",
+      "options": { "commands": ["poetry run pytest"], "cwd": "libraries/core" }
+    }
+  }
+}

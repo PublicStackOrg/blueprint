@@ -1,0 +1,33 @@
+{
+  "name": "{{ cookiecutter.service_name }}",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "projectType": "application",
+  "sourceRoot": "services/{{ cookiecutter.service_name }}/{{ cookiecutter.python_package }}",
+  "targets": {
+    "install": {
+      "executor": "@nxlv/python:install",
+      "options": { "silent": false, "args": "--no-root" }
+    },
+    "lint": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "poetry run ruff check {{ cookiecutter.python_package }} tests",
+        "cwd": "services/{{ cookiecutter.service_name }}"
+      }
+    },
+    "test": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "poetry run pytest",
+        "cwd": "services/{{ cookiecutter.service_name }}"
+      }
+    },
+    "build": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "docker build -f services/{{ cookiecutter.service_name }}/Dockerfile -t {{ cookiecutter.service_name }}:latest .",
+        "cwd": "."
+      }
+    }
+  }
+}

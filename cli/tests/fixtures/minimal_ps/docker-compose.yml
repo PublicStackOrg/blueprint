@@ -1,0 +1,42 @@
+# minimal_ps — fixture stand-in for `add` editor tests.
+
+services:
+  db:
+    image: postgres:16-alpine
+
+  redis:
+    image: redis:7-alpine
+
+  migrator:
+    build:
+      context: .
+      dockerfile: services/migrator/Dockerfile
+    depends_on:
+      db:
+        condition: service_healthy
+
+  api:
+    build:
+      context: .
+      dockerfile: services/api/Dockerfile
+    environment:
+      DATABASE_URL: postgresql+asyncpg://app:app@db:5432/app
+      LOG_LEVEL: INFO
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+
+  worker:
+    build:
+      context: .
+      dockerfile: services/worker/Dockerfile
+    environment:
+      LOG_LEVEL: INFO
+    depends_on:
+      redis:
+        condition: service_healthy
+
+volumes:
+  postgres_data:

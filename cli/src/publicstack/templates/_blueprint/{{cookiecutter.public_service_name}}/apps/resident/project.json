@@ -1,0 +1,25 @@
+{
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "name": "resident",
+  "projectType": "application",
+  "sourceRoot": "apps/resident/lib",
+  "tags": ["app:flutter", "app:resident"],
+  "targets": {
+    "install": {
+      "executor": "nx:run-commands",
+      "options": { "commands": ["flutter pub get"], "cwd": "apps/resident" }
+    },
+    "lint": {
+      "executor": "nx:run-commands",
+      "options": { "commands": ["flutter analyze"], "cwd": "apps/resident" }
+    },
+    "test": {
+      "executor": "nx:run-commands",
+      "options": { "commands": ["flutter test"], "cwd": "apps/resident" }
+    },
+    "build": {
+      "executor": "nx:run-commands",
+      "options": { "commands": ["flutter build web --release"], "cwd": "apps/resident" }
+    }
+  }
+}

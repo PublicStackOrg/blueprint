@@ -1,0 +1,33 @@
+# {{ cookiecutter.public_service_name }} — E2E test overrides.
+#
+# Used by the compliance suite (Phase 5) and any cross-service
+# integration tests. Run with:
+#
+#     docker compose -f docker-compose.yml -f docker-compose.e2e.yml up
+#
+# Differences from base compose:
+#   - Postgres on a different port (5433) so it doesn't collide with
+#     a dev compose stack running in parallel.
+#   - DB name suffixed with _e2e.
+#   - No volume mount on Postgres — fresh DB every run.
+
+services:
+  db:
+    ports:
+      - "5433:5432"
+    environment:
+      POSTGRES_DB: {{ cookiecutter.python_package }}_e2e
+    volumes: []
+
+  migrator:
+    environment:
+      DATABASE_URL: postgresql+asyncpg://{{ cookiecutter.python_package }}:{{ cookiecutter.python_package }}@db:5432/{{ cookiecutter.python_package }}_e2e
+
+  api:
+    environment:
+      DATABASE_URL: postgresql+asyncpg://{{ cookiecutter.python_package }}:{{ cookiecutter.python_package }}@db:5432/{{ cookiecutter.python_package }}_e2e
+      ENVIRONMENT: e2e
+
+  worker:
+    environment:
+      DATABASE_URL: postgresql+asyncpg://{{ cookiecutter.python_package }}:{{ cookiecutter.python_package }}@db:5432/{{ cookiecutter.python_package }}_e2e

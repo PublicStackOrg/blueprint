@@ -1,0 +1,25 @@
+name: staff
+description: Staff dashboard for {{ cookiecutter.public_service_name }} (Flutter web).
+version: 0.0.1
+publish_to: none
+
+environment:
+  sdk: ">=3.4.0 <4.0.0"
+  flutter: ">=3.24.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_riverpod: ^2.6.1
+  go_router: ^14.6.0
+  ui:
+    path: ../../libraries/ui
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0
+  dio: ^5.7.0  # used in widget_test.dart for fake api response construction
+
+flutter:
+  uses-material-design: true

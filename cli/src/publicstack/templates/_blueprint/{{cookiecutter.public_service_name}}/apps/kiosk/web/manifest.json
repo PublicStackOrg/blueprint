@@ -1,0 +1,11 @@
+{
+  "name": "{{ cookiecutter.public_service_name }} — Kiosk",
+  "short_name": "{{ cookiecutter.public_service_name }} Kiosk",
+  "start_url": ".",
+  "display": "fullscreen",
+  "background_color": "#F8F9FB",
+  "theme_color": "#0B5FFF",
+  "description": "Kiosk terminal for {{ cookiecutter.public_service_name }}.",
+  "orientation": "any",
+  "prefer_related_applications": false
+}

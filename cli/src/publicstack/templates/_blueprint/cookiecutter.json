@@ -1,0 +1,12 @@
+{
+    "public_service_name": "ExamplePS",
+    "public_service_slug": "{{ cookiecutter.public_service_name|lower|replace(' ', '_')|replace('-', '_') }}",
+    "python_package": "{{ cookiecutter.public_service_slug }}",
+    "description": "An open-source PublicStack Public Service.",
+    "github_org": "PublicStackOrg",
+    "blueprint_version": "0.1.0",
+    "_copy_without_render": [
+        "LICENSE",
+        ".github/workflows/*.yml"
+    ]
+}

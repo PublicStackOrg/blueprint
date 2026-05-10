@@ -1,0 +1,29 @@
+{
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "name": "migrator",
+  "projectType": "application",
+  "sourceRoot": "services/migrator/migrations",
+  "tags": ["service:python", "service:migrator"],
+  "targets": {
+    "install": {
+      "executor": "nx:run-commands",
+      "options": { "commands": ["poetry install"], "cwd": "services/migrator" }
+    },
+    "lint": {
+      "executor": "nx:run-commands",
+      "options": { "commands": ["poetry run ruff check migrations/"], "cwd": "services/migrator" }
+    },
+    "migrate": {
+      "executor": "nx:run-commands",
+      "options": { "commands": ["poetry run alembic upgrade head"], "cwd": "services/migrator" }
+    },
+    "check-models": {
+      "executor": "nx:run-commands",
+      "options": { "commands": ["poetry run alembic check"], "cwd": "services/migrator" }
+    },
+    "build": {
+      "executor": "nx:run-commands",
+      "options": { "commands": ["docker build -f services/migrator/Dockerfile -t migrator:dev ."], "cwd": "." }
+    }
+  }
+}

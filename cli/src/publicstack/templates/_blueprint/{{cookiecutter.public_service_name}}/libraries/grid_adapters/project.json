@@ -1,0 +1,21 @@
+{
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "name": "grid_adapters",
+  "projectType": "library",
+  "sourceRoot": "libraries/grid_adapters/grid_adapters",
+  "tags": ["lib:python", "grid"],
+  "targets": {
+    "install": {
+      "executor": "nx:run-commands",
+      "options": { "commands": ["poetry install"], "cwd": "libraries/grid_adapters" }
+    },
+    "lint": {
+      "executor": "nx:run-commands",
+      "options": { "commands": ["poetry run ruff check grid_adapters/ tests/"], "cwd": "libraries/grid_adapters" }
+    },
+    "test": {
+      "executor": "nx:run-commands",
+      "options": { "commands": ["poetry run pytest"], "cwd": "libraries/grid_adapters" }
+    }
+  }
+}

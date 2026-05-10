@@ -1,0 +1,25 @@
+[tool.poetry]
+name = "minimal_ps"
+version = "0.0.1"
+description = "Fixture for editor tests."
+authors = ["test"]
+package-mode = false
+
+[tool.poetry.dependencies]
+python = "^3.13"
+
+[tool.poetry.dependencies.api]
+path = "services/api"
+develop = true
+
+[tool.poetry.dependencies.worker]
+path = "services/worker"
+develop = true
+
+[tool.poetry.dependencies.core]
+path = "libraries/core"
+develop = true
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"

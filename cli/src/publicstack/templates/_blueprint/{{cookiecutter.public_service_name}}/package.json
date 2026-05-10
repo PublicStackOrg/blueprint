@@ -1,0 +1,33 @@
+{
+  "name": "{{ cookiecutter.python_package }}",
+  "version": "0.0.1",
+  "private": true,
+  "description": "{{ cookiecutter.description }}",
+  "license": "AGPL-3.0",
+  "scripts": {
+    "dev": "./scripts/dev.sh",
+    "dev:up": "docker compose up -d",
+    "dev:down": "docker compose down",
+    "dev:clean": "docker compose down -v",
+    "lint": "npx nx run-many -t lint",
+    "test": "npx nx run-many -t test",
+    "build": "npx nx run-many -t build",
+    "affected:lint": "npx nx affected -t lint",
+    "affected:test": "npx nx affected -t test",
+    "affected:build": "npx nx affected -t build",
+    "flutter:resident": "./scripts/flutter-run.sh resident",
+    "flutter:staff": "./scripts/flutter-run.sh staff",
+    "flutter:kiosk": "./scripts/flutter-run.sh kiosk"
+  },
+  "devDependencies": {
+    "@nx-tools/nx-container": "^7.2.0",
+    "@nxlv/python": "^21.2.3",
+    "@nx/js": "^22.0.0",
+    "@nx/workspace": "^22.0.0",
+    "nx": "^22.0.0"
+  },
+  "engines": {
+    "node": ">=20",
+    "npm": ">=10"
+  }
+}

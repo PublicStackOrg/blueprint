@@ -1,0 +1,44 @@
+[tool.poetry]
+name = "publicstack"
+version = "0.1.0"
+description = "PublicStack CLI — scaffolds and maintains Public Services from blueprint."
+authors = ["PublicStack <hello@publicstack.org>"]
+license = "AGPL-3.0-or-later"
+readme = "README.md"
+packages = [{ include = "publicstack", from = "src" }]
+include = [
+    "src/publicstack/templates/**/*",
+    "src/publicstack/templates/**/.*",
+]
+
+[tool.poetry.dependencies]
+python = "^3.13"
+typer = { extras = ["all"], version = ">=0.16,<1.0" }
+cookiecutter = "^2.6"
+"ruamel.yaml" = "^0.18"
+tomlkit = "^0.13"
+packaging = "^24.0"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.3.0"
+pytest-cov = "^5.0.0"
+ruff = "^0.7.0"
+
+[tool.poetry.scripts]
+publicstack = "publicstack.cli:app"
+
+[tool.ruff]
+line-length = 100
+target-version = "py313"
+extend-exclude = ["src/publicstack/templates"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "N", "UP", "B", "C4", "SIM"]
+ignore = ["E501", "B008", "N818"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[build-system]
+requires = ["poetry-core>=1.9.0"]
+build-backend = "poetry.core.masonry.api"

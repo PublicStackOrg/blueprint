@@ -1,0 +1,21 @@
+{
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "name": "ui",
+  "projectType": "library",
+  "sourceRoot": "libraries/ui/lib",
+  "tags": ["lib:dart", "lib:flutter"],
+  "targets": {
+    "install": {
+      "executor": "nx:run-commands",
+      "options": { "commands": ["flutter pub get"], "cwd": "libraries/ui" }
+    },
+    "lint": {
+      "executor": "nx:run-commands",
+      "options": { "commands": ["flutter analyze"], "cwd": "libraries/ui" }
+    },
+    "test": {
+      "executor": "nx:run-commands",
+      "options": { "commands": ["flutter test"], "cwd": "libraries/ui" }
+    }
+  }
+}
