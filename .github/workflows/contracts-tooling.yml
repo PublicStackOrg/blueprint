@@ -1,0 +1,60 @@
+name: contracts-tooling
+
+on:
+  pull_request:
+    paths:
+      - "contracts/tooling/**"
+      - "contracts/examples/**"
+      - "contracts/README.md"
+      - ".github/workflows/contracts-tooling.yml"
+  push:
+    branches: [main]
+    paths:
+      - "contracts/tooling/**"
+      - "contracts/examples/**"
+      - "contracts/README.md"
+      - ".github/workflows/contracts-tooling.yml"
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: contracts/tooling
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - name: Install Poetry
+        run: pipx install poetry==1.8.3
+      - name: Install dependencies
+        run: poetry install --with dev
+      - name: Lint
+        run: poetry run ruff check src tests
+      - name: Test
+        run: poetry run pytest -q
+
+  test-with-oasdiff:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: contracts/tooling
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - name: Install Poetry
+        run: pipx install poetry==1.8.3
+      - name: Install oasdiff
+        run: |
+          curl -L -o /tmp/oasdiff.tar.gz \
+            https://github.com/oasdiff/oasdiff/releases/latest/download/oasdiff_linux_amd64.tar.gz
+          tar -xzf /tmp/oasdiff.tar.gz -C /tmp
+          sudo mv /tmp/oasdiff /usr/local/bin/oasdiff
+          oasdiff --version
+      - name: Install dependencies
+        run: poetry install --with dev
+      - name: Test (with oasdiff)
+        run: poetry run pytest -q

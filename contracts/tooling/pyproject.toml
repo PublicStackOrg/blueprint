@@ -1,0 +1,38 @@
+[tool.poetry]
+name = "publicstack-contracts"
+version = "0.1.0"
+description = "Validate and diff PublicStack contracts (OpenAPI 3.1 + JSON Schema)."
+authors = ["PublicStack <hello@publicstack.org>"]
+license = "AGPL-3.0-or-later"
+readme = "README.md"
+packages = [{ include = "publicstack_contracts", from = "src" }]
+
+[tool.poetry.dependencies]
+python = "^3.13"
+typer = { extras = ["all"], version = ">=0.16,<1.0" }
+"openapi-spec-validator" = "^0.7.0"
+jsonschema = "^4.21"
+referencing = "^0.35"
+pyyaml = "^6.0"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.3.0"
+ruff = "^0.7.0"
+
+[tool.poetry.scripts]
+publicstack-contracts = "publicstack_contracts.cli:app"
+
+[tool.ruff]
+line-length = 100
+target-version = "py313"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "N", "UP", "B", "C4", "SIM"]
+ignore = ["E501", "B008", "N818"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[build-system]
+requires = ["poetry-core>=1.9.0"]
+build-backend = "poetry.core.masonry.api"
