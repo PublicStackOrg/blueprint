@@ -9,6 +9,7 @@ from publicstack_compliance.checks import (
     contract_compat,
     data_export,
     grid_integration,
+    observability,
     security,
 )
 from publicstack_compliance.findings import Finding
@@ -34,7 +35,7 @@ CHECKS: dict[str, Callable[[Path], list[Finding]]] = {
     "contract_compat": contract_compat.run,
     "grid_integration": grid_integration.run,
     "security": security.run,
-    "observability": _stub("observability"),
+    "observability": observability.run,
     "accessibility": _stub("accessibility"),
 }
 
