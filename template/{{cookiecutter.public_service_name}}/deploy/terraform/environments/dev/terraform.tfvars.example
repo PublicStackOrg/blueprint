@@ -1,0 +1,24 @@
+# {{ cookiecutter.public_service_name }} — dev tfvars.
+#
+# Copy to terraform.tfvars and fill in. Cheapest defaults; HA off.
+
+cloud       = "aws"
+environment = "dev"
+region      = "us-east-1"
+
+vpc_id             = "vpc-xxxxxxxx"
+public_subnet_ids  = ["subnet-aaa", "subnet-bbb"]
+private_subnet_ids = ["subnet-ccc", "subnet-ddd"]
+
+image_prefix = "ghcr.io/{{ cookiecutter.github_org|lower }}/{{ cookiecutter.python_package }}"
+image_tag    = "latest"
+
+aliases                    = ["{{ cookiecutter.public_service_slug }}-dev.example.org"]
+cloudfront_certificate_arn = "arn:aws:acm:us-east-1:000000000000:certificate/CHANGE-ME"
+
+postgres_master_password = "CHANGE-ME-from-secret-manager"
+log_level                = "DEBUG"
+
+tags = {
+  Owner = "your-team"
+}

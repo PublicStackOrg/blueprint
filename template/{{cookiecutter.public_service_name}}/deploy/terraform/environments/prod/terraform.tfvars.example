@@ -1,0 +1,48 @@
+# {{ cookiecutter.public_service_name }} — prod tfvars (AWS default).
+#
+# Copy to terraform.tfvars (gitignored) and fill in.
+
+# --- Cloud target -----------------------------------------------------------
+cloud       = "aws"
+environment = "prod"
+region      = "us-east-1"
+
+# --- Networking (bring your own VPC) ----------------------------------------
+vpc_id             = "vpc-xxxxxxxx"
+public_subnet_ids  = ["subnet-aaa", "subnet-bbb"]
+private_subnet_ids = ["subnet-ccc", "subnet-ddd"]
+
+# --- Container images -------------------------------------------------------
+# CI publishes ghcr.io/<owner>/<repo>-{api,worker,migrator}:<tag>.
+# image_prefix is everything before the `-<service>` suffix.
+image_prefix = "ghcr.io/{{ cookiecutter.github_org|lower }}/{{ cookiecutter.python_package }}"
+image_tag    = "latest"
+
+# --- Public hostnames + certs -----------------------------------------------
+aliases                    = ["{{ cookiecutter.public_service_slug }}.example.org"]
+cloudfront_certificate_arn = "arn:aws:acm:us-east-1:000000000000:certificate/CHANGE-ME"  # MUST be in us-east-1
+# alb_certificate_arn      = "arn:aws:acm:us-east-1:000000000000:certificate/CHANGE-ME-also-regional"
+
+# --- Sizing -----------------------------------------------------------------
+postgres_instance_class  = "db.t4g.small"
+postgres_multi_az        = true
+queue_node_type          = "cache.t4g.micro"
+queue_num_cache_clusters = 2
+api_desired_count        = 2
+worker_desired_count     = 1
+
+# --- Secrets (load from your secret manager — don't commit) -----------------
+postgres_master_password = "CHANGE-ME-from-secret-manager"
+
+# --- Identity ---------------------------------------------------------------
+auth_mode = "none"   # or "keycloak" / "zitadel" / etc. once chosen (SPIKES.md #2)
+
+# --- Observability ----------------------------------------------------------
+log_level              = "INFO"
+otel_exporter_endpoint = ""    # e.g. https://otlp.example.org
+
+# --- Tags -------------------------------------------------------------------
+tags = {
+  Owner = "your-team"
+  Cost  = "your-budget-tag"
+}

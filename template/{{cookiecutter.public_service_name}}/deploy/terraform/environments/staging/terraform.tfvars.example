@@ -1,0 +1,24 @@
+# {{ cookiecutter.public_service_name }} — staging tfvars.
+
+cloud       = "aws"
+environment = "staging"
+region      = "us-east-1"
+
+vpc_id             = "vpc-xxxxxxxx"
+public_subnet_ids  = ["subnet-aaa", "subnet-bbb"]
+private_subnet_ids = ["subnet-ccc", "subnet-ddd"]
+
+image_prefix = "ghcr.io/{{ cookiecutter.github_org|lower }}/{{ cookiecutter.python_package }}"
+image_tag    = "latest"
+
+aliases                    = ["{{ cookiecutter.public_service_slug }}-staging.example.org"]
+cloudfront_certificate_arn = "arn:aws:acm:us-east-1:000000000000:certificate/CHANGE-ME"
+
+postgres_master_password = "CHANGE-ME-from-secret-manager"
+
+api_desired_count = 2
+log_level         = "INFO"
+
+tags = {
+  Owner = "your-team"
+}
