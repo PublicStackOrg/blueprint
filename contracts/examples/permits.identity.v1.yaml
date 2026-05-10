@@ -1,0 +1,75 @@
+openapi: 3.1.0
+info:
+  title: permits.identity
+  version: v1
+  description: |
+    Identity-attestation surface that the Permits Public Service exposes
+    so other Public Services can check whether a contractor's permit
+    paperwork is on file.
+
+    This file lives in a *consumer's* `contracts/consumed/` directory —
+    e.g., Parking pins this copy from Permits' `contracts/exposed/`.
+    The pinned consumer copy must byte-match an exposed file at the
+    producer; the Phase 5 compliance suite enforces that round-trip.
+
+    Use the `<producer>.<name>.<version>.yaml` filename convention when
+    a contract is consumed across Public Services.
+  x-publicstack-contract-name: permits.identity
+  x-publicstack-contract-version: v1
+
+servers:
+  - url: https://permits.example.org/api/v1
+    description: Production
+
+paths:
+  /contractors/{id}/attestations:
+    get:
+      summary: List active permit attestations for a contractor.
+      operationId: listAttestations
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+        - in: query
+          name: kind
+          schema:
+            $ref: "#/components/schemas/AttestationKind"
+      responses:
+        "200":
+          description: Attestations on file. Empty array means none.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Attestation"
+        "404":
+          description: No contractor with this ID.
+
+components:
+  schemas:
+    Attestation:
+      type: object
+      required: [id, contractor_id, kind, issued_at, valid_through]
+      properties:
+        id:
+          type: string
+          format: uuid
+        contractor_id:
+          type: string
+        kind:
+          $ref: "#/components/schemas/AttestationKind"
+        issued_at:
+          type: string
+          format: date-time
+        valid_through:
+          type: string
+          format: date-time
+        notes:
+          type: string
+          description: Free-text. Optional.
+    AttestationKind:
+      type: string
+      enum: [insurance, business_license, bond]

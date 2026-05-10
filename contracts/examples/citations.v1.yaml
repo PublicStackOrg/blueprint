@@ -1,0 +1,115 @@
+openapi: 3.1.0
+info:
+  title: citations
+  version: v1
+  description: |
+    Parking citation lookups exposed to other Public Services. Permits
+    consumes this to check for outstanding citations before issuing
+    contractor permits. The producer is the Parking Public Service.
+
+    This is an exemplar of an OpenAPI 3.1 contract under PublicStack
+    rules. See blueprint/contracts/README.md for the format spec.
+  x-publicstack-contract-name: citations
+  x-publicstack-contract-version: v1
+
+servers:
+  - url: https://parking.example.org/api/v1
+    description: Production
+  - url: http://localhost:8000/api/v1
+    description: Local dev
+
+paths:
+  /citations/{id}:
+    get:
+      summary: Fetch a single citation by ID.
+      operationId: getCitation
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Citation found.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Citation"
+        "404":
+          description: No citation with this ID.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /citations:
+    get:
+      summary: Search citations.
+      operationId: searchCitations
+      parameters:
+        - in: query
+          name: subject_id
+          description: Filter to citations where the cited subject matches this ID.
+          schema:
+            type: string
+        - in: query
+          name: status
+          schema:
+            $ref: "#/components/schemas/CitationStatus"
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 200
+            default: 50
+      responses:
+        "200":
+          description: Matching citations, possibly empty.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Citation"
+
+components:
+  schemas:
+    Citation:
+      type: object
+      required: [id, subject_id, issued_at, status, amount_cents, currency]
+      properties:
+        id:
+          type: string
+          format: uuid
+        subject_id:
+          type: string
+          description: Identifier for the cited subject (license plate, person, etc.). Opaque.
+        issued_at:
+          type: string
+          format: date-time
+        status:
+          $ref: "#/components/schemas/CitationStatus"
+        amount_cents:
+          type: integer
+          minimum: 0
+        currency:
+          type: string
+          minLength: 3
+          maxLength: 3
+          description: ISO 4217 code.
+        location:
+          type: string
+          description: Free-text location string. Optional.
+    CitationStatus:
+      type: string
+      enum: [open, paid, dismissed, in_dispute]
+    Error:
+      type: object
+      required: [code, message]
+      properties:
+        code:
+          type: string
+        message:
+          type: string

@@ -1,0 +1,82 @@
+$schema: https://json-schema.org/draft/2020-12/schema
+$id: https://contracts.publicstack.org/audit_entry.v1.json
+title: audit_entry
+description: |
+  An append-only audit log entry. Every Public Service implements the Grid
+  audit contract by writing entries that match this shape. Default impl is
+  Postgres-backed (libraries/grid_adapters/audit/); a hash-chained or
+  externally-anchored adapter can ship without a v2 because prev_hash and
+  entry_hash are already part of the v1 surface.
+
+  See blueprint/grid/audit/README.md.
+x-publicstack-contract-name: audit_entry
+x-publicstack-contract-version: v1
+
+type: object
+required:
+  - id
+  - actor
+  - action
+  - resource
+  - occurred_at
+properties:
+  id:
+    type: string
+    format: uuid
+    description: Stable identifier for this entry.
+  seq:
+    type: integer
+    minimum: 1
+    description: |
+      Monotonic sequence number assigned by the storage adapter. Optional in
+      the contract — adapters that can't expose a strict ordering omit it.
+  occurred_at:
+    type: string
+    format: date-time
+    description: When the action took effect, RFC 3339.
+  actor:
+    type: object
+    required: [id, kind]
+    properties:
+      id:
+        type: string
+        description: Stable identity for the actor (subject claim, service name, etc.).
+      kind:
+        type: string
+        enum: [user, service]
+    additionalProperties: false
+  action:
+    type: string
+    description: Verb-form action name, snake_case (`citation.created`, `payment.refunded`).
+    pattern: '^[a-z][a-z0-9_]*\.[a-z][a-z0-9_]*$'
+  resource:
+    type: object
+    required: [kind, id]
+    properties:
+      kind:
+        type: string
+        description: Snake_case resource type (`citation`, `permit`).
+      id:
+        type: string
+        description: Stable resource identifier.
+    additionalProperties: false
+  payload:
+    type: object
+    description: |
+      Free-form structured detail. Producers should keep payload bounded
+      (under ~4 KB) and PII-aware. Empty object is the default.
+    default: {}
+  prev_hash:
+    type: string
+    contentEncoding: base64
+    description: |
+      32-byte SHA-256 of the prior committed entry, base64-encoded. The first
+      entry uses 32 zero bytes. Optional — adapters that don't compute hash
+      chains omit it.
+  entry_hash:
+    type: string
+    contentEncoding: base64
+    description: |
+      32-byte SHA-256 over canonical-JSON of this entry, base64-encoded.
+      Optional — adapters that don't compute hash chains omit it.
+additionalProperties: false
