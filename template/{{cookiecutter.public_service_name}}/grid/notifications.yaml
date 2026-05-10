@@ -1,0 +1,3 @@
+# Notifications wiring for {{ cookiecutter.public_service_name }}.
+# Contract: blueprint/grid/notifications/contract.yaml
+backend: log_only       # log_only (dev) | ses | postmark | smtp | twilio | fcm

@@ -1,0 +1,3 @@
+# Identity wiring for {{ cookiecutter.public_service_name }}.
+# Contract: blueprint/grid/identity/contract.yaml
+backend: none           # none | keycloak | zitadel | authentik | auth0 | clerk | cognito (TBD)

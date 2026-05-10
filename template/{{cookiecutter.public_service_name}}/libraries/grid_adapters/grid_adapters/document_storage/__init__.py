@@ -1,9 +1,14 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
-"""Object-storage adapter.
+"""Document-storage adapter.
 
-Default implementation writes to the local filesystem so the dev loop
-runs without any cloud account. S3 / GCS / R2 / MinIO adapters plug in
-when the Grid storage contract is finalised.
+Default impl writes to the local filesystem so the dev loop runs without any
+cloud account. S3 / GCS / R2 / MinIO adapters plug in via
+DOCUMENT_STORAGE_BACKEND.
+
+The Grid contract is at blueprint/grid/document_storage/contract.yaml.
+
+Renamed from `storage` in blueprint v0.1.0; see
+blueprint/docs/migration-guides/v0.1_to_v0.2.md.
 """
 
 from __future__ import annotations

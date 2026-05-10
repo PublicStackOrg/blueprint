@@ -1,0 +1,3 @@
+# Audit wiring for {{ cookiecutter.public_service_name }}.
+# Contract: blueprint/grid/audit/contract.yaml
+backend: postgres       # postgres (default) | qldb (planned) | s3_object_lock (planned)

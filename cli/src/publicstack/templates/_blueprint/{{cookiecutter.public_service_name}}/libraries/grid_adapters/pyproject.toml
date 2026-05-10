@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "grid_adapters"
 version = "0.0.1"
-description = "Pluggable adapters for the PublicStack Grid (queue, storage, identity, notifications)."
+description = "Pluggable adapters for the PublicStack Grid (identity, payments, notifications, audit, document_storage, accessibility, queue)."
 authors = ["PublicStack <hello@publicstack.org>"]
 license = "AGPL-3.0-or-later"
 package-mode = true
@@ -11,9 +11,12 @@ packages = [{ include = "grid_adapters" }]
 python = "^3.13"
 rq = "^2.0.0"
 redis = "^5.2.0"
+sqlalchemy = { version = "^2.0.36", extras = ["asyncio"] }
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.3.0"
+pytest-asyncio = "^0.24.0"
+asyncpg = "^0.30.0"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

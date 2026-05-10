@@ -1,0 +1,4 @@
+# Document storage wiring for {{ cookiecutter.public_service_name }}.
+# Contract: blueprint/grid/document_storage/contract.yaml
+backend: local          # local (dev) | s3 | gcs | r2 | azure_blob | minio
+local_root: ./document_storage

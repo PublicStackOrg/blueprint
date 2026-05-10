@@ -1,0 +1,3 @@
+# Payments wiring for {{ cookiecutter.public_service_name }}.
+# Contract: blueprint/grid/payments/contract.yaml
+backend: log_only       # log_only (dev) | stripe | local_bank | city_merchant
