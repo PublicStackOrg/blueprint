@@ -85,7 +85,7 @@ def get_audit_adapter(
 # Document storage ----------------------------------------------------------
 
 
-def get_storage_adapter(
+def get_document_storage_adapter(
     settings: APISettings = Depends(get_settings),
 ) -> StorageAdapter:
     backend = getattr(settings, "document_storage_backend", "local")
