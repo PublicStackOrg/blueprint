@@ -1,0 +1,126 @@
+openapi: 3.1.0
+info:
+  title: payments
+  version: v1
+  description: |
+    The Grid payments contract — Public Services that take money implement
+    this surface. PublicStack itself is never merchant of record; cities
+    bring their own processor (Stripe, local-bank, city-merchant) via an
+    adapter.
+
+    Resident-facing flow: the Public Service creates a payment intent, the
+    adapter returns a redirect URL to the processor's hosted page, the
+    resident pays the city directly. The Public Service never sees card
+    data. Processor-specific fields live in `metadata` (per SPIKES.md #1).
+  x-publicstack-contract-name: payments
+  x-publicstack-contract-version: v1
+
+paths:
+  /intents:
+    post:
+      summary: Create a payment intent.
+      operationId: createIntent
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/IntentCreate"
+      responses:
+        "201":
+          description: Intent created.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Intent"
+  /intents/{id}:
+    get:
+      summary: Fetch a payment intent.
+      operationId: getIntent
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        "200":
+          description: Intent state.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Intent"
+  /intents/{id}/refund:
+    post:
+      summary: Refund a payment intent (full or partial).
+      operationId: refundIntent
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RefundCreate"
+      responses:
+        "200":
+          description: Refund accepted.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Refund"
+
+components:
+  schemas:
+    IntentCreate:
+      type: object
+      required: [amount_cents, currency, description]
+      properties:
+        amount_cents: { type: integer, minimum: 1 }
+        currency: { type: string, minLength: 3, maxLength: 3, description: "ISO 4217" }
+        description: { type: string }
+        return_url: { type: string, format: uri }
+        metadata:
+          type: object
+          additionalProperties: true
+          description: Processor-specific opaque data.
+          default: {}
+    Intent:
+      type: object
+      required: [id, status, amount_cents, currency, created_at]
+      properties:
+        id: { type: string, format: uuid }
+        status: { $ref: "#/components/schemas/IntentStatus" }
+        amount_cents: { type: integer, minimum: 0 }
+        currency: { type: string, minLength: 3, maxLength: 3 }
+        created_at: { type: string, format: date-time }
+        redirect_url:
+          type: string
+          format: uri
+          description: Hosted-page URL the resident is sent to. Empty for non-redirect flows.
+        metadata:
+          type: object
+          additionalProperties: true
+          default: {}
+    IntentStatus:
+      type: string
+      enum: [pending, requires_action, succeeded, failed, refunded, partially_refunded]
+    RefundCreate:
+      type: object
+      required: [amount_cents]
+      properties:
+        amount_cents: { type: integer, minimum: 1 }
+        reason: { type: string }
+    Refund:
+      type: object
+      required: [id, intent_id, amount_cents, status, created_at]
+      properties:
+        id: { type: string, format: uuid }
+        intent_id: { type: string, format: uuid }
+        amount_cents: { type: integer, minimum: 1 }
+        status:
+          type: string
+          enum: [pending, succeeded, failed]
+        created_at: { type: string, format: date-time }

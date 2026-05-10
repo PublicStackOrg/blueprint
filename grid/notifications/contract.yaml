@@ -1,0 +1,86 @@
+openapi: 3.1.0
+info:
+  title: notifications
+  version: v1
+  description: |
+    The Grid notifications contract — sending email, SMS, or push messages.
+    Each Public Service implements this surface via an adapter (SES, Postmark,
+    Twilio, FCM, etc.). The dev default logs to stdout and never sends.
+  x-publicstack-contract-name: notifications
+  x-publicstack-contract-version: v1
+
+paths:
+  /messages:
+    post:
+      summary: Queue a message for delivery.
+      operationId: sendMessage
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MessageCreate"
+      responses:
+        "202":
+          description: Message accepted for delivery.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Message"
+  /messages/{id}:
+    get:
+      summary: Fetch a message's delivery status.
+      operationId: getMessage
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        "200":
+          description: Message state.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Message"
+
+components:
+  schemas:
+    Channel:
+      type: string
+      enum: [email, sms, push]
+    MessageCreate:
+      type: object
+      required: [channel, to, template_id]
+      properties:
+        channel: { $ref: "#/components/schemas/Channel" }
+        to:
+          type: string
+          description: Email address, phone number, or push token. Adapter-validates the shape per channel.
+        template_id:
+          type: string
+          description: Adapter-specific template identifier.
+        vars:
+          type: object
+          additionalProperties: true
+          default: {}
+        metadata:
+          type: object
+          additionalProperties: true
+          default: {}
+    Message:
+      type: object
+      required: [id, channel, status, created_at]
+      properties:
+        id: { type: string, format: uuid }
+        channel: { $ref: "#/components/schemas/Channel" }
+        status:
+          type: string
+          enum: [queued, sent, delivered, failed, suppressed]
+        created_at: { type: string, format: date-time }
+        delivered_at:
+          type: string
+          format: date-time
+        error:
+          type: string
+          description: Adapter-supplied error string when status is `failed` or `suppressed`.

@@ -1,0 +1,58 @@
+$schema: https://json-schema.org/draft/2020-12/schema
+$id: https://contracts.publicstack.org/grid/identity.v1.json
+title: identity
+description: |
+  The Grid identity contract — the token-claims shape every Public Service's
+  IdentityAdapter must surface. Adapters for Keycloak, ZITADEL, Authentik,
+  Auth0, Clerk, Cognito etc. each normalize their provider-specific claims
+  into this shape.
+
+  The default impl that ships with each generated Public Service is
+  `NoAuthAdapter`, which returns a hardcoded dev user. SPIKES.md #2
+  deliberately leaves the default self-hostable provider unresolved; this
+  contract is the seam that lets that decision land later without breaking
+  existing Public Services.
+x-publicstack-contract-name: identity
+x-publicstack-contract-version: v1
+
+type: object
+required:
+  - sub
+  - auth_source
+properties:
+  sub:
+    type: string
+    description: Stable subject identifier. Opaque to the Public Service.
+  email:
+    type: string
+    format: email
+    description: Optional. Kiosk and machine identities may not have one.
+  email_verified:
+    type: boolean
+    default: false
+  display_name:
+    type: string
+  is_staff:
+    type: boolean
+    default: false
+    description: True if this identity is a city-staff actor (vs resident or service).
+  roles:
+    type: array
+    items:
+      type: string
+      pattern: '^[a-z][a-z0-9_-]*$'
+    default: []
+    description: |
+      Coarse role labels assigned by the identity provider. Public Services
+      should treat unknown roles as "no permission" rather than failing.
+  auth_source:
+    type: string
+    enum: [city-sso, resident, service, dev]
+    description: |
+      Where this identity came from. `city-sso` for staff via SSO,
+      `resident` for self-registered residents, `service` for machine
+      identities, `dev` for the no-auth dev adapter.
+  expires_at:
+    type: string
+    format: date-time
+additionalProperties: true

@@ -1,0 +1,64 @@
+$schema: https://json-schema.org/draft/2020-12/schema
+$id: https://contracts.publicstack.org/grid/audit.v1.json
+title: audit
+description: |
+  The Grid audit contract — append-only log entries every Public Service
+  must produce for actions that mutate state. The default adapter is
+  Postgres-backed (`PostgresAuditAdapter`) and computes `prev_hash` and
+  `entry_hash` so the chain is verifiable.
+
+  `prev_hash` and `entry_hash` are optional in this v1 contract so adapters
+  that don't compute them (e.g., a future managed-audit adapter that delegates
+  tamper-evidence to AWS QLDB or external Merkle anchoring) can ship without a
+  v2 (per SPIKES.md #6).
+
+  See blueprint/contracts/examples/audit_entry.v1.yaml for an exemplar value
+  conforming to this contract.
+x-publicstack-contract-name: audit
+x-publicstack-contract-version: v1
+
+type: object
+required:
+  - id
+  - actor
+  - action
+  - resource
+  - occurred_at
+properties:
+  id: { type: string, format: uuid }
+  seq:
+    type: integer
+    minimum: 1
+    description: Monotonic sequence assigned by the adapter. Optional.
+  occurred_at: { type: string, format: date-time }
+  actor:
+    type: object
+    required: [id, kind]
+    properties:
+      id: { type: string }
+      kind: { type: string, enum: [user, service] }
+    additionalProperties: false
+  action:
+    type: string
+    pattern: '^[a-z][a-z0-9_]*\.[a-z][a-z0-9_]*$'
+    description: Verb-form action name, snake_case (`citation.created`).
+  resource:
+    type: object
+    required: [kind, id]
+    properties:
+      kind: { type: string }
+      id: { type: string }
+    additionalProperties: false
+  payload:
+    type: object
+    default: {}
+    description: Free-form structured detail. Bounded (~4KB) and PII-aware.
+  prev_hash:
+    type: string
+    contentEncoding: base64
+    description: 32-byte SHA-256 of the prior entry, base64. Zero bytes for first entry.
+  entry_hash:
+    type: string
+    contentEncoding: base64
+    description: 32-byte SHA-256 over canonical-JSON of this entry, base64.
+additionalProperties: false

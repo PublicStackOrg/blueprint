@@ -1,0 +1,59 @@
+$schema: https://json-schema.org/draft/2020-12/schema
+$id: https://contracts.publicstack.org/grid/accessibility.v1.json
+title: accessibility
+description: |
+  The Grid accessibility contract — server-side primitives for recording and
+  querying accessibility violations detected by automated scans of generated
+  Public Service apps.
+
+  Flutter-side helpers (semantic labels, focus management, contrast) live in
+  `libraries/ui/`, not the Grid. This contract is what the compliance suite
+  reads to verify every shipping app meets WCAG 2.2 AA (per SPIKES.md #4).
+
+  v1 is intentionally thin so the contract can survive a Flutter-web a11y
+  fallback (e.g., staff dashboard becoming plain web) without a v2.
+x-publicstack-contract-name: accessibility
+x-publicstack-contract-version: v1
+
+type: object
+oneOf:
+  - $ref: "#/$defs/A11yScanReport"
+  - $ref: "#/$defs/A11yViolation"
+
+$defs:
+  Severity:
+    type: string
+    enum: [minor, moderate, serious, critical]
+  A11yViolation:
+    type: object
+    required: [rule_id, severity, selector, app, app_route]
+    properties:
+      rule_id:
+        type: string
+        description: |
+          Stable identifier for the violated rule (e.g., axe-core's
+          `color-contrast`, `image-alt`).
+      severity: { $ref: "#/$defs/Severity" }
+      selector:
+        type: string
+        description: CSS-selector or widget path that pinpoints the violating element.
+      app:
+        type: string
+        description: Name of the Flutter app under apps/.
+      app_route:
+        type: string
+        description: GoRouter path within the app where the violation was found.
+      help_url:
+        type: string
+        format: uri
+    additionalProperties: false
+  A11yScanReport:
+    type: object
+    required: [generated_at, app, violations]
+    properties:
+      generated_at: { type: string, format: date-time }
+      app: { type: string }
+      violations:
+        type: array
+        items: { $ref: "#/$defs/A11yViolation" }
+    additionalProperties: false

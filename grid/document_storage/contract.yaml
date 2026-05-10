@@ -1,0 +1,88 @@
+openapi: 3.1.0
+info:
+  title: document_storage
+  version: v1
+  description: |
+    The Grid document_storage contract — object put/get/delete/list. Default
+    adapter is local-filesystem (`LocalFilesystemAdapter`). S3, GCS, R2,
+    Azure Blob, and MinIO adapters slot in via env-var swap.
+
+    Object keys are opaque strings; the Public Service decides naming. Keys
+    must be valid filesystem paths under the local adapter (no leading `/`,
+    no `..` segments) — adapter validates.
+  x-publicstack-contract-name: document_storage
+  x-publicstack-contract-version: v1
+
+paths:
+  /objects/{key}:
+    parameters:
+      - in: path
+        name: key
+        required: true
+        schema: { type: string }
+    put:
+      summary: Upload or overwrite an object.
+      operationId: putObject
+      requestBody:
+        required: true
+        content:
+          application/octet-stream:
+            schema:
+              type: string
+              format: binary
+      responses:
+        "200":
+          description: Object stored.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Object" }
+    get:
+      summary: Fetch an object by key.
+      operationId: getObject
+      responses:
+        "200":
+          description: Object payload.
+          content:
+            application/octet-stream:
+              schema: { type: string, format: binary }
+        "404":
+          description: No object with this key.
+    delete:
+      summary: Delete an object.
+      operationId: deleteObject
+      responses:
+        "204":
+          description: Deleted.
+        "404":
+          description: No object with this key.
+  /objects:
+    get:
+      summary: List objects with an optional prefix.
+      operationId: listObjects
+      parameters:
+        - in: query
+          name: prefix
+          schema: { type: string }
+        - in: query
+          name: limit
+          schema: { type: integer, minimum: 1, maximum: 1000, default: 100 }
+      responses:
+        "200":
+          description: List of object metadata.
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/Object" }
+
+components:
+  schemas:
+    Object:
+      type: object
+      required: [key, size, content_type, etag, created_at]
+      properties:
+        key: { type: string }
+        size: { type: integer, minimum: 0 }
+        content_type: { type: string }
+        etag: { type: string, description: Adapter-specific. SHA256 hex on local FS." }
+        created_at: { type: string, format: date-time }
