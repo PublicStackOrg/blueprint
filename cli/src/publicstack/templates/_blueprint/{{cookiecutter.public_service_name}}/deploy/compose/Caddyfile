@@ -1,0 +1,60 @@
+# {{ cookiecutter.public_service_name }} — Caddy reverse-proxy + static-asset server.
+#
+# All routes terminate TLS via Let's Encrypt automatically (Caddy handles
+# both ACME HTTP-01 + the cert renewal cron). HTTP requests redirect to
+# HTTPS by default.
+#
+# Routes:
+#   /api/*, /v1/*, /health, /version, /metrics  → api:8000 (FastAPI)
+#   /staff/*                                     → static apps/staff/build/web
+#   /kiosk/*                                     → static apps/kiosk/build/web
+#   /                                            → static apps/resident/build/web
+#
+# /metrics is reachable only with HTTP basic auth (Prometheus scrape uses it).
+
+{$PUBLIC_HOSTNAME} {
+    encode zstd gzip
+
+    # API + framework endpoints — proxy to the FastAPI service.
+    @api {
+        path /api/* /v1/* /health /version
+    }
+    handle @api {
+        reverse_proxy api:8000
+    }
+
+    # /metrics — same backend, but require basic auth so Prometheus and
+    # whoever holds the password are the only ones who can scrape.
+    handle /metrics {
+        basic_auth {
+            {$METRICS_BASIC_AUTH}
+        }
+        reverse_proxy api:8000
+    }
+
+    # Staff dashboard — static SPA at /staff.
+    handle_path /staff/* {
+        root * /srv/staff
+        try_files {path} /index.html
+        file_server
+    }
+
+    # Kiosk SPA at /kiosk.
+    handle_path /kiosk/* {
+        root * /srv/kiosk
+        try_files {path} /index.html
+        file_server
+    }
+
+    # Resident SPA at the root.
+    handle {
+        root * /srv/resident
+        try_files {path} /index.html
+        file_server
+    }
+
+    log {
+        output stdout
+        format json
+    }
+}

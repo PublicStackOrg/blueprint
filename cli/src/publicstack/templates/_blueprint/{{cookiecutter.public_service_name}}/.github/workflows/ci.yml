@@ -157,6 +157,61 @@ jobs:
           push: false
           tags: migrator:dev
 
+  docker-push:
+    name: Push service images to GHCR
+    runs-on: ubuntu-latest
+    needs: [docker-build]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Compute lowercase image prefix
+        id: img
+        run: |
+          # Match the python_package convention: lowercase, underscores
+          # (no hyphens). This is what deploy/compose/prod.yml expects in
+          # the image: line, so the same tag works for both CI publish
+          # and VPS pull.
+          owner=$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')
+          repo=$(echo "${{ github.event.repository.name }}" | tr '[:upper:]' '[:lower:]' | tr '-' '_')
+          echo "PREFIX=${owner}/${repo}" >> "$GITHUB_OUTPUT"
+      - name: Build + push api
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: services/api/Dockerfile
+          push: true
+          tags: |
+            ghcr.io/${{ steps.img.outputs.PREFIX }}-api:git-${{ github.sha }}
+            ghcr.io/${{ steps.img.outputs.PREFIX }}-api:latest
+      - name: Build + push worker
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: services/worker/Dockerfile
+          push: true
+          tags: |
+            ghcr.io/${{ steps.img.outputs.PREFIX }}-worker:git-${{ github.sha }}
+            ghcr.io/${{ steps.img.outputs.PREFIX }}-worker:latest
+      - name: Build + push migrator
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: services/migrator/Dockerfile
+          push: true
+          tags: |
+            ghcr.io/${{ steps.img.outputs.PREFIX }}-migrator:git-${{ github.sha }}
+            ghcr.io/${{ steps.img.outputs.PREFIX }}-migrator:latest
+
   guards:
     name: CI guards
     runs-on: ubuntu-latest

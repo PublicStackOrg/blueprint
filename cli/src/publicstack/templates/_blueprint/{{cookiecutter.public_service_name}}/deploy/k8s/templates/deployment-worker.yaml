@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-worker
+  labels:
+    {{- include "ps.labels" . | nindent 4 }}
+    app.kubernetes.io/component: worker
+spec:
+  replicas: {{ .Values.worker.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "ps.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: worker
+  template:
+    metadata:
+      labels:
+        {{- include "ps.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: worker
+    spec:
+      containers:
+        - name: worker
+          image: "{{ .Values.imagePrefix }}-worker:{{ .Values.imageTag }}"
+          imagePullPolicy: {{ .Values.imagePullPolicy }}
+          envFrom:
+            - configMapRef:
+                name: {{ .Release.Name }}-env
+          env:
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ if .Values.externalPostgres.enabled }}{{ .Values.externalPostgres.secretName }}{{ else }}{{ .Values.postgresql.auth.existingSecret }}{{ end }}
+                  key: password
+            - name: REDIS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ if .Values.externalRedis.enabled }}{{ .Values.externalRedis.secretName }}{{ else }}{{ .Values.redis.auth.existingSecret }}{{ end }}
+                  key: redis-password
+            - name: DATABASE_URL
+              value: {{ include "ps.databaseUrl" . | quote }}
+            - name: REDIS_URL
+              value: {{ include "ps.redisUrl" . | quote }}
+          resources:
+            {{- toYaml .Values.worker.resources | nindent 12 }}

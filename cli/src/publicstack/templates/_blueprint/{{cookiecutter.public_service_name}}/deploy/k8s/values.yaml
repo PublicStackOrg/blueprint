@@ -1,0 +1,111 @@
+# {{ cookiecutter.public_service_name }} — Helm values.
+# Override per env: `helm install ... -f values-prod.yaml`.
+
+# Image prefix (no service suffix); CI publishes -api / -worker / -migrator
+imagePrefix: ghcr.io/{{ cookiecutter.github_org|lower }}/{{ cookiecutter.python_package }}
+imageTag: latest
+imagePullPolicy: IfNotPresent
+
+# Public hostname for Ingress + CORS.
+publicHostname: {{ cookiecutter.public_service_slug }}.example.org
+
+# Secret values: provide via --set or a sealed-secret. Don't commit.
+postgresPassword: ""    # required
+redisPassword: ""       # required when redis.enabled or external Redis uses auth
+
+api:
+  replicaCount: 2
+  resources:
+    requests:
+      cpu: 500m
+      memory: 1Gi
+    limits:
+      cpu: 1000m
+      memory: 2Gi
+  autoscaling:
+    enabled: false
+    minReplicas: 2
+    maxReplicas: 6
+    targetCPUUtilizationPercentage: 70
+
+worker:
+  replicaCount: 1
+  resources:
+    requests:
+      cpu: 200m
+      memory: 512Mi
+    limits:
+      cpu: 500m
+      memory: 1Gi
+
+migrator:
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+
+ingress:
+  enabled: true
+  className: nginx
+  # ALB (eks): use `alb` and add the AWS Load Balancer Controller
+  # annotations. GCE: use `gce` and the GCE-ingress annotations.
+  annotations: {}
+  tls:
+    enabled: true
+    secretName: {{ cookiecutter.python_package }}-tls
+  pathPrefixes:
+    api: /api
+    v1: /v1
+
+# Bitnami Postgres subchart. Disable to bring your own (set
+# externalPostgresUrl + externalPostgresSecret).
+postgresql:
+  enabled: true
+  auth:
+    username: {{ cookiecutter.python_package }}
+    database: {{ cookiecutter.python_package }}
+    existingSecret: {{ cookiecutter.python_package }}-pg-secret
+  primary:
+    persistence:
+      size: 10Gi
+
+externalPostgres:
+  enabled: false
+  url: ""               # postgresql+asyncpg://...
+  secretName: ""
+
+# Bitnami Redis subchart.
+redis:
+  enabled: true
+  auth:
+    enabled: true
+    existingSecret: {{ cookiecutter.python_package }}-redis-secret
+  master:
+    persistence:
+      enabled: true
+      size: 4Gi
+
+externalRedis:
+  enabled: false
+  url: ""               # redis://...
+  secretName: ""
+
+# Grid backends (mirrors deploy/compose/.env.prod.example)
+grid:
+  authMode: none
+  auditBackend: postgres
+  documentStorageBackend: local
+  documentStorageLocalRoot: /var/lib/{{ cookiecutter.python_package }}/document_storage
+  notificationsBackend: log_only
+  paymentsBackend: log_only
+  accessibilityBackend: in_memory
+
+observability:
+  logLevel: INFO
+  otelExporterOtlpEndpoint: ""
+  otelSdkDisabled: false
+
+corsOrigins: ""   # auto-derived from publicHostname; override to add origins

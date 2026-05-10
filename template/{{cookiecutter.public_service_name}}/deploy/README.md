@@ -1,17 +1,16 @@
 # `deploy/`
 
 Deployment artifacts for **{{ cookiecutter.public_service_name }}**.
-Three on-ramps, ordered by cheapness and friction:
+Three on-ramps — see [`HOSTING.md`](HOSTING.md) for the full
+walkthrough.
 
-- `compose/` — single-VPS docker-compose. The cheapest path. Target:
-  $10–20/mo VPS for a small-city deploy.
-- `k8s/` — Helm chart for operators with a K8s cluster.
-- `terraform/` — per-cloud Terraform modules (AWS / GCP / Hetzner /
-  K8s) under `terraform/modules/`, with environments under
-  `terraform/environments/`.
+| Path | Best for | Floor |
+|---|---|---|
+| [`compose/`](compose/) | Cities self-hosting on a VPS | $10–20/mo |
+| [`k8s/`](k8s/) | Operators with an existing K8s cluster | already-paid cluster + ~$20/mo |
+| [`terraform/`](terraform/) | Managed hosting (default cloud: AWS) | ~$130-250/mo prod |
 
-Filled in during **Phase 6** of `blueprint`'s plan, including
-`HOSTING.md` with copy-pasteable runbooks.
-
-Cloud-agnostic from day one. Hosting is a per-deployer decision, not
-declared by this repo.
+PublicStack-managed deployments default to the AWS Terraform path;
+self-hosting cities pick VPS or Helm. Swap clouds in the Terraform
+path via `terraform apply -var cloud=bare-k8s` (or `gcp` / `hetzner` /
+`r2` once those modules land).

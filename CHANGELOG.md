@@ -8,6 +8,50 @@ from in their `BLUEPRINT_VERSION` file.
 
 ## [Unreleased]
 
+## [0.4.0] — 2026-05-10
+
+### Added
+
+- **Three hosting on-ramps** under `deploy/` (Phase 6 §3 of `docs/PLAN.md`):
+  - `compose/prod.yml` + `Caddyfile` + `.env.prod.example` + runbook
+    for the single-VPS path. Caddy auto-cert via Let's Encrypt;
+    services pull from GHCR rather than build context.
+  - Helm chart at `k8s/` — Chart.yaml + templates/ — installable on
+    EKS/GKE/AKS/kind. Conditional Bitnami postgresql + redis
+    subcharts; bring-your-own DB via externalPostgres / externalRedis.
+  - Terraform modules at `terraform/modules/<resource>/<cloud>/` with
+    a uniform output contract per resource. Environments at
+    `terraform/environments/{dev,staging,prod}/` parameterized by
+    `var.cloud` (default `aws`).
+- **AWS modules complete:** RDS Postgres 16, S3 (versioned, encrypted,
+  lifecycle), ElastiCache Redis 7, ECS Fargate + ALB + IAM +
+  CloudWatch Logs, CloudFront with two origins (ALB + S3 static).
+- **bare-k8s modules complete:** Bitnami postgresql / redis / minio
+  Helm releases; the PS Helm chart (deploy/k8s/) wrapped via the helm
+  provider for `compute`; cert-manager Let's Encrypt ClusterIssuer
+  for `cdn`.
+- **Stub modules:** `gcp/`, `hetzner/`, `r2/` with `terraform_data`
+  preconditions that fail plan-time with a "PRs welcome" message
+  pointing at the README. `var.cloud` validation accepts only
+  `{aws, bare-k8s, gcp, hetzner, r2}`.
+- **`HOSTING.md`** at `deploy/HOSTING.md` — three sections, copy-
+  pasteable commands, cost pointers.
+- **`docs/cost-floor.md`** — design budget table per provider tier
+  (Hetzner CX21/CX31, Vultr 2 GB, DO basic-2gb/4gb, AWS Fargate
+  equivalent). SPIKES.md #7 stays open until Parking actually deploys
+  and we measure.
+- **GHCR push job** in template `.github/workflows/ci.yml` —
+  api/worker/migrator images publish to `ghcr.io/<owner_lower>/
+  <repo_lower_underscored>-<service>:git-${SHA}` plus `:latest` on
+  push-to-main.
+
+### Changed
+
+- Per the user's hosting decision, the Terraform path defaults to
+  `var.cloud = "aws"`; cloud-agnostic still ships but AWS leads. PLAN.md
+  §3's "cloud-agnostic from day one" softens to "cloud-agnostic
+  pattern, AWS lead implementation."
+
 ## [0.3.0] — 2026-05-10
 
 ### Added
