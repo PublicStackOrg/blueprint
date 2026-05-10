@@ -35,4 +35,7 @@ def _version() -> None:
 
 
 app.command("upgrade")(upgrade_cmd)
-app.command("lint")(lint_cmd)
+app.command(
+    "lint",
+    context_settings={"allow_extra_args": True, "ignore_unknown_options": True},
+)(lint_cmd)
