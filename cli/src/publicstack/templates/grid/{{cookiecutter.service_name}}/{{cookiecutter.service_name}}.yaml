@@ -1,0 +1,19 @@
+{%- set s = cookiecutter.service_name -%}
+# {{ s }} wiring.
+# Contract: blueprint/grid/{{ s }}/contract.yaml
+{%- if s == "identity" %}
+backend: none           # none | keycloak | zitadel | authentik | auth0 | clerk | cognito (TBD)
+{%- elif s == "payments" %}
+backend: log_only       # log_only (dev) | stripe | local_bank | city_merchant
+{%- elif s == "notifications" %}
+backend: log_only       # log_only (dev) | ses | postmark | smtp | twilio | fcm
+{%- elif s == "audit" %}
+backend: postgres       # postgres (default) | qldb (planned) | s3_object_lock (planned)
+{%- elif s == "document_storage" %}
+backend: local          # local (dev) | s3 | gcs | r2 | azure_blob | minio
+local_root: ./document_storage
+{%- elif s == "accessibility" %}
+backend: in_memory      # in_memory (default; resets on restart)
+{%- else %}
+backend: default
+{%- endif %}

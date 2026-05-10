@@ -5,6 +5,8 @@ info:
   description: |
     PublicStack contract: {{ cookiecutter.contract_name }} ({{ cookiecutter.version }}).
     Fill in paths and components below.
+  x-publicstack-contract-name: {{ cookiecutter.contract_name }}
+  x-publicstack-contract-version: {{ cookiecutter.version }}
 paths: {}
 components:
   schemas: {}

@@ -1,4 +1,4 @@
-"""`publicstack add api|app|contract`."""
+"""`publicstack add api|app|contract|grid`."""
 
 from __future__ import annotations
 
@@ -209,6 +209,77 @@ def contract_cmd(
         shutil.move(str(generated_file), str(final_path))
 
     errors.ok(f"added {final_path.relative_to(root)}")
+
+
+_GRID_SERVICES = {
+    "identity",
+    "payments",
+    "notifications",
+    "audit",
+    "document_storage",
+    "accessibility",
+}
+
+
+@add_app.command("grid")
+def grid_cmd(
+    service: str = typer.Argument(..., help="Grid service name."),
+) -> None:
+    """Wire a Grid service into the current Public Service.
+
+    Idempotent: if `grid/<service>.yaml` already exists, prints `unchanged`
+    and exits 0. If the per-PS adapter slot is missing (older PSes that
+    pre-date this Grid service), copies the bundled stub into
+    `libraries/grid_adapters/grid_adapters/<service>/`.
+    """
+    if service not in _GRID_SERVICES:
+        errors.die(
+            f"'{service}' is not a known Grid service",
+            f"one of: {', '.join(sorted(_GRID_SERVICES))}",
+        )
+
+    root = _ps_root_or_die()
+    grid_dir = root / "grid"
+    grid_dir.mkdir(exist_ok=True)
+    final_yaml = grid_dir / f"{service}.yaml"
+
+    yaml_already = final_yaml.exists()
+    adapter_dir = root / "libraries" / "grid_adapters" / "grid_adapters" / service
+    adapter_already = adapter_dir.is_dir()
+
+    if yaml_already and adapter_already:
+        errors.info(f"grid/{service}.yaml unchanged; adapter slot already present")
+        return
+
+    if not yaml_already:
+        with add_template_dir("grid") as tdir, _scratch_dir() as scratch:
+            generated = cookiecutter_run(
+                tdir,
+                output_dir=scratch,
+                extra_context={"service_name": service},
+            )
+            generated_yaml = generated / f"{service}.yaml"
+            if not generated_yaml.exists():
+                errors.die(
+                    f"grid template did not produce {generated_yaml.name}",
+                    "this is a CLI bug; please report",
+                )
+            shutil.move(str(generated_yaml), str(final_yaml))
+        errors.ok(f"wrote grid/{service}.yaml")
+
+    if not adapter_already:
+        # Copy the bundled adapter stub if we have one for this service.
+        with add_template_dir("grid") as tdir:
+            stub_src = tdir / "_adapter_stubs" / service
+            if stub_src.is_dir():
+                adapter_dir.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copytree(stub_src, adapter_dir)
+                errors.ok(f"scaffolded libraries/grid_adapters/grid_adapters/{service}/")
+            else:
+                errors.warn(
+                    f"no bundled stub for '{service}' adapter; skipping scaffold",
+                    "create libraries/grid_adapters/grid_adapters/{service}/__init__.py manually",
+                )
 
 
 # ---------------------------------------------------------------------------

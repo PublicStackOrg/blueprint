@@ -8,7 +8,7 @@ from importlib.resources import as_file, files
 from pathlib import Path
 from typing import Literal
 
-AddKind = Literal["service", "app", "contract"]
+AddKind = Literal["service", "app", "contract", "grid"]
 
 
 @contextmanager

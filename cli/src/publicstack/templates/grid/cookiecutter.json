@@ -1,0 +1,4 @@
+{
+    "service_name": "identity",
+    "_copy_without_render": ["_adapter_stubs"]
+}
